@@ -1,20 +1,32 @@
 package com.mymap.mymap.controller;
 
 import com.mymap.mymap.Crolling;
+import com.mymap.mymap.auth.JwtProvider;
+import com.mymap.mymap.domain.user.UserDTO;
+import com.mymap.mymap.domain.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
+    private final JwtProvider jwtProvider;
+    private final UserService userService;
     @GetMapping("/")
     public String index() {
         Crolling.crollSelenium();
@@ -87,4 +99,20 @@ public class HomeController {
             e.printStackTrace();
         }
     }
+
+    @PostMapping("/params")
+    @ResponseBody
+    public String params(){
+
+        return "";
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) throws Exception{
+        long userNo = userService.login(userDTO);
+        String token = jwtProvider.generateToken(Long.toString(userNo));
+        return ResponseEntity.ok(Map.of("accessToken", token));
+    }
+
+
 }
