@@ -1,6 +1,8 @@
 package com.mymap.mymap;
 
+import com.mymap.mymap.domain.params.*;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
@@ -20,6 +22,13 @@ class busRouteFilter {
 	HashSet<String> yongsan17AR = new HashSet<>(Arrays.asList("505","용산03","프리패스"));
 
 	Map<String,Set<String>> routes = new ConcurrentHashMap<>();
+
+	@Autowired
+	private FilteredBusRepository filteredBusRepository;
+	@Autowired
+	private MarkerClusterRepository markerClusterRepository;
+	@Autowired
+	private ParamsService paramsService;
 
 	@Test
 	void way3() {
@@ -105,7 +114,7 @@ class busRouteFilter {
 		//int hongjeDepth, harimgakDepth, seoulDepth, seoul6Depth = 0;
 
 		Map<String,Set<String>> departureGroup = new ConcurrentHashMap<>();
-		departureGroup.putIfAbsent("13350",pobangDP);
+		departureGroup.putIfAbsent("13550",pobangDP);
 		departureGroup.putIfAbsent("13168",ganhoDP);
 		Map<String,Set<String>> transferGroup = new ConcurrentHashMap<>();
 		transferGroup.putIfAbsent("13028",hongjeTF);
@@ -298,7 +307,7 @@ class busRouteFilter {
 
 	@Test
 	public void way4withGraph() {
-		routes.putIfAbsent("13350",pobangDP);
+		routes.putIfAbsent("13550",pobangDP);
 		routes.putIfAbsent("13168",ganhoDP);
 		routes.putIfAbsent("13028",hongjeTF);
 		routes.putIfAbsent("01136",harimgakTF);
@@ -309,7 +318,7 @@ class busRouteFilter {
 		routes.putIfAbsent("03132",yongsan17AR);
 
 		Map<String, Set<String>> groups = new ConcurrentHashMap<>();
-		groups.putIfAbsent("departure",new HashSet<>(Arrays.asList("13350","13168")));
+		groups.putIfAbsent("departure",new HashSet<>(Arrays.asList("13550","13168")));
 		groups.putIfAbsent("transfer",new HashSet<>(Arrays.asList("13028","01136","02004","02006")));
 		groups.putIfAbsent("arrive",new HashSet<>(Arrays.asList("03144","03004","03132")));
 
@@ -403,12 +412,34 @@ class busRouteFilter {
 		}
 
 		System.out.println("=== 최종 ===");
-		groups.get("departure").forEach(k-> System.out.println(routes.get(k)));
-		groups.get("transfer").forEach(k-> System.out.println(routes.get(k)));
-		groups.get("arrive").forEach(k-> System.out.println(routes.get(k)));
+		List<FilteredBusDTO> lists = new ArrayList<>();
+		groups.get("departure").forEach(k->{
+			lists.add(createFilteredBus(k));
+			System.out.println(routes.get(k));
+		});
+		groups.get("transfer").forEach(k-> {
+			lists.add(createFilteredBus(k));
+			System.out.println(routes.get(k));
+		});
+		groups.get("arrive").forEach(k->{
+			lists.add(createFilteredBus(k));
+			System.out.println(routes.get(k));
+		});
 		freepass.forEach(k-> System.out.println("freepass: "+k));
 		d2arpass.forEach(k->System.out.println("d2pass: "+k));
+		//paramsService.createFilteredBus(lists);
 
+	}
+
+	public FilteredBusDTO createFilteredBus(String k){
+		System.out.println("in func: "+k);
+		FilteredBusDTO dto = new FilteredBusDTO();
+		String clusterName = paramsService.findByArsId(1L,k);
+		dto.setJourneyNo(1L);
+		dto.setClusterName(clusterName);
+		dto.setArsId(k);
+		dto.setRoutes(routes.get(k).toArray(new String[0]));
+		return dto;
 	}
 
 	public List<List<String>> freepathSearch(Set<String> dp, Set<String> ar, String dk, String ak){

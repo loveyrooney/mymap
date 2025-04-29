@@ -1,4 +1,4 @@
-package com.mymap.mymap.domain;
+package com.mymap.mymap.domain.params;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,8 @@ import lombok.*;
 @Getter
 public class MarkerCluster {
     @Id
-    private long no;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long no;
 
     @Column(name="journey_no",nullable = false)
     private long journeyNo;

@@ -1,4 +1,4 @@
-package com.mymap.mymap.domain;
+package com.mymap.mymap.domain.params;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

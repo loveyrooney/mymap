@@ -1,6 +1,9 @@
 package com.mymap.mymap;
 
 import com.mymap.mymap.domain.*;
+import com.mymap.mymap.domain.params.JourneyRepository;
+import com.mymap.mymap.domain.params.MarkerClusterDTO;
+import com.mymap.mymap.domain.params.ParamsService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
@@ -23,6 +26,8 @@ public class clusterNaming {
     private JourneyRepository journey;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private ParamsService paramsService;
 
     Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
@@ -57,12 +62,12 @@ public class clusterNaming {
 
     @Test
     public void partString(){
-        List<Object[]> clusters = subway.getClusterGrouping(2L);
+        List<Object[]> clusters = subway.getClusterGrouping(1L);
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
         int clusterId = 0;
         String clusterName = createClusterNameHasCid(clusters.get(0));
         int idx = 0;
-        List<String> subKeySet = new ArrayList<>();
+        Set<String> subKeySet = new HashSet<>();
         List<String> busKeySet = new ArrayList<>();
         List<String> bikeKeySet = new ArrayList<>();
         for(int i=0; i<clusters.size(); i++){
@@ -78,7 +83,7 @@ public class clusterNaming {
                 }
                 // 클러스터 디티오를 만들 필요가 없음. 클러스터 네임이 바뀌는 단위로 그 id 배열들을 만들어 놔야함.
                 if("subway".equals(clusters.get(i)[0]))
-                    subKeySet.add((String)clusters.get(i)[1]);
+                    subKeySet.add((String)clusters.get(i)[2]);
                 else if("bus".equals(clusters.get(i)[0]))
                     busKeySet.add((String)clusters.get(i)[1]);
                 else
@@ -91,12 +96,29 @@ public class clusterNaming {
         for(int i=idx; i<clusters.size(); i++){
             createClusterNameHasNotCid(1L,clusters.get(i));
         }
-        clusterKeySet.forEach((k,v)->
-                    v.forEach((vk,vv)->{
-                        System.out.printf("%s, %s, %s",k,vk,vv);
-                        System.out.println();
-                    })
-                );
+
+        List<MarkerClusterDTO> lists = new ArrayList<>();
+        Iterator<String> iterator1 = clusterKeySet.keySet().iterator();
+        while(iterator1.hasNext()){
+            String k = iterator1.next();
+            Map<String,List<String>> v = clusterKeySet.get(k);
+            MarkerClusterDTO dto = new MarkerClusterDTO();
+            if(v.get("bus")!=null)
+                dto.setClusterBus(v.get("bus").toArray(new String[0]));
+            if(v.get("bike")!=null)
+                dto.setClusterBike(v.get("bike").toArray(new String[0]));
+            if(v.get("subway")!=null)
+                dto.setClusterSub(v.get("subway").toArray(new String[0]));
+            dto.setClusterName(k);
+            dto.setJourneyNo(1);
+            lists.add(dto);
+            System.out.printf("%s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"));
+            System.out.println();
+        }
+//        clusterKeySet.forEach((k,v)->{
+//
+//        });
+        //paramsService.createMarkerCluster(lists);
 
 
     }
@@ -112,7 +134,7 @@ public class clusterNaming {
         return clusterName;
     }
 
-    public void putClusterSet(String clusterName, List<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
+    public void putClusterSet(String clusterName, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
         List<String> subs = List.copyOf(subKeySet);
         List<String> buses = List.copyOf(busKeySet);
         List<String> bikes = List.copyOf(bikeKeySet);
@@ -134,14 +156,21 @@ public class clusterNaming {
         if("bus".equals(cluster[0]))
             clusterName = journey.containsWhereBus(jno,(String)cluster[1]);
         else if ("subway".equals(cluster[0]))
-            clusterName = journey.containsWhereSub(jno,(String)cluster[1]);
+            clusterName = journey.containsWhereSub(jno,(String)cluster[2]);
         else
             clusterName = journey.containsWhereBike(jno,(String)cluster[1]);
         if(clusterName==null)
             clusterName = (String)cluster[2];
-        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
-                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
-                .add((String)cluster[1]);
+//        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
+//                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
+//                .add((String)cluster[1]);
+        Map<String, List<String>> innerMap = clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>());
+        List<String> list = innerMap.computeIfAbsent((String) cluster[0], k -> new ArrayList<>());
+        if ("subway".equals(cluster[0])) {
+            list.add((String) cluster[2]);
+        } else {
+            list.add((String) cluster[1]);
+        }
     }
 
 }

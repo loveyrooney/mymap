@@ -1,4 +1,4 @@
-package com.mymap.mymap.domain;
+package com.mymap.mymap.domain.params;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

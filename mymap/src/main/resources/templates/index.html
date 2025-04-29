@@ -3,9 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="./js/websocket.js"></script>
 </head>
 <body>
 <h1>hello, mymap!</h1>
+<form>
+    <input type="text" name="userId" placeholder="id">
+    <input type="text" name="password" placeholder="pw">
+    <button type="button" id="login">로그인</button>
+</form>
+<script>
+    const form = document.querySelector("form");
+    document.querySelector("#login").addEventListener("click",()=>{
+        console.log(form.userId);
+        fetch("/login",{
+            method : "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body : JSON.stringify({ userId : form.userId.value, password : form.password.value})
+        }).then(res=>{
+             if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
+             return res.json();
+        }).then(r=>{
+            console.log(r);
+            sessionStorage.setItem("token",r.accessToken);
+            if(sessionStorage.getItem("token")){
+                console.log(sessionStorage.getItem("token"));
+                window.location.href = "/main";
+            }
+        }).catch(error=>{
+            console.log("error: ",error);
+        });
+    });
+</script>
 </body>
 </html>

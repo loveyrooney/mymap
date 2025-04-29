@@ -2,6 +2,9 @@ package com.mymap.mymap.controller;
 
 import com.mymap.mymap.Crolling;
 import com.mymap.mymap.auth.JwtProvider;
+import com.mymap.mymap.domain.params.FilteredBusDTO;
+import com.mymap.mymap.domain.params.MarkerClusterDTO;
+import com.mymap.mymap.domain.params.ParamsService;
 import com.mymap.mymap.domain.user.UserDTO;
 import com.mymap.mymap.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +12,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,9 +33,10 @@ import java.util.Map;
 public class HomeController {
     private final JwtProvider jwtProvider;
     private final UserService userService;
+    private final ParamsService paramsService;
     @GetMapping("/")
     public String index() {
-        Crolling.crollSelenium();
+        //Crolling.crollSelenium();
         //Crolling.crollJsoup();
         //call();
         return "index";
@@ -100,18 +107,27 @@ public class HomeController {
         }
     }
 
-    @PostMapping("/params")
-    @ResponseBody
-    public String params(){
-
-        return "";
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO) throws Exception{
+        System.out.println(userDTO.getUserId()+userDTO.getPassword());
         long userNo = userService.login(userDTO);
         String token = jwtProvider.generateToken(Long.toString(userNo));
         return ResponseEntity.ok(Map.of("accessToken", token));
+    }
+
+    @GetMapping("/main")
+    public String main(){
+        return "main";
+    }
+
+    @PostMapping("/api/params")
+    @ResponseBody
+    public String params(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("main: "+auth.getPrincipal());
+        //FilteredBusDTO filterBus = paramsService.findFilterBusById(auth.getPrincipal());
+        //MarkerClusterDTO markerCluster = paramsService.findMarkerClusterById(auth.getPrincipal());
+        return "";
     }
 
 

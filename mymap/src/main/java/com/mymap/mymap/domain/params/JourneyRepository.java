@@ -1,7 +1,8 @@
-package com.mymap.mymap.domain;
+package com.mymap.mymap.domain.params;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface JourneyRepository extends JpaRepository<Journey,Long> {
     @Query(value = " select case " +
@@ -13,7 +14,7 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
             " where j.no = :jno" +
             " and (:id = any(j.from_sub) " +
             " or :id = any(j.to_sub))", nativeQuery = true)
-    String containsWhereSub(long jno, String id);
+    String containsWhereSub(@Param("jno") long jno, @Param("id") String id);
 
     @Query(value = " select case " +
             " when :id = any(j.from_bus) then j.from_name " +
@@ -24,7 +25,7 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
             " where j.no = :jno" +
             " and (:id = any(j.from_bus) " +
             " or :id = any(j.to_bus))", nativeQuery = true)
-    String containsWhereBus(long jno, String id);
+    String containsWhereBus(@Param("jno") long jno, @Param("id") String id);
 
     @Query(value = " select case " +
             " when :id = any(j.from_bike) then j.from_name " +
@@ -35,5 +36,5 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
             " where j.no = :jno" +
             " and (:id = any(j.from_bike) " +
             " or :id = any(j.to_bike))", nativeQuery = true)
-    String containsWhereBike(long jno, String id);
+    String containsWhereBike(@Param("jno") long jno, @Param("id") String id);
 }

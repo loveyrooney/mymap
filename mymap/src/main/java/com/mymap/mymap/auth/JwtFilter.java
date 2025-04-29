@@ -35,11 +35,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 System.out.println("validate token: "+userNo);
                 // 4. 사용자 인증 처리
                 if (userNo != null) {
-                    // username 확인 후 userNo 가져오는 처리 여기서 해야됨
                     // 5. 사용자 정보를 기반으로 Authentication 객체 생성
                     Authentication authentication = new UsernamePasswordAuthenticationToken(Long.parseLong(userNo), null, new ArrayList<>());
                     // 6. SecurityContext에 인증 정보를 설정
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("if 안: "+SecurityContextHolder.getContext().getAuthentication());
                 }
             } catch (Exception e) {
                 // 토큰이 유효하지 않은 경우 예외 처리
