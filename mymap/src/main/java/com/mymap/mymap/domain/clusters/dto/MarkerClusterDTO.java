@@ -1,7 +1,5 @@
-package com.mymap.mymap.domain.params;
+package com.mymap.mymap.domain.clusters.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
 import lombok.*;
 
 @Getter @Setter
@@ -12,6 +10,7 @@ public class MarkerClusterDTO {
     private long no;
     private long journeyNo;
     private String clusterName;
+    private String geomTable;
     private String[] clusterBus;
     private String[] clusterSub;
     private String[] clusterBike;

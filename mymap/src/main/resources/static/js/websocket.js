@@ -4,7 +4,7 @@ window.onload = function () {
 
     webSocket.onopen = function(event) {
         console.log("Connected to WebSocket server.");
-        // 클라이언트의 웹소켓 오픈 시, 기존 대화 리스트 받아오기
+        // 지도 UI 터치 시 해당 역의 param 요청 조건 추가해야됨
         fetch("/api/params",{
                 method: "POST",
                 headers: {

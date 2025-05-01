@@ -1,4 +1,4 @@
-package com.mymap.mymap.domain.params;
+package com.mymap.mymap.domain.clusters.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +19,9 @@ public class MarkerCluster {
 
     @Column(name="cluster_name")
     private String clusterName;
+
+    @Column(name="geom_table")
+    private String geomTable;
 
     @Column(name="cluster_bus")
     private String[] clusterBus;

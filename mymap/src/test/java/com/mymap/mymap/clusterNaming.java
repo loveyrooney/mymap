@@ -1,9 +1,9 @@
 package com.mymap.mymap;
 
 import com.mymap.mymap.domain.*;
-import com.mymap.mymap.domain.params.JourneyRepository;
-import com.mymap.mymap.domain.params.MarkerClusterDTO;
-import com.mymap.mymap.domain.params.ParamsService;
+import com.mymap.mymap.domain.clusters.repository.JourneyRepository;
+import com.mymap.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.mymap.domain.clusters.ClustersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ public class clusterNaming {
     @Autowired
     private EntityManager entityManager;
     @Autowired
-    private ParamsService paramsService;
+    private ClustersService clustersService;
 
     Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class clusterNaming {
         List<Object[]> resultList = nativeQuery.getResultList();
         for(Object[] o:resultList){
             if(o[3]!=null){
-                String clusterName = createClusterNameHasCid(o);
+                String clusterName = createClusterNameHasCid(o)[0];
                 System.out.printf("%s, %s, %s, %d",(String)o[0],(String)o[1],clusterName,(int)o[3]);
                 System.out.println();
             }
@@ -65,21 +65,21 @@ public class clusterNaming {
         List<Object[]> clusters = subway.getClusterGrouping(1L);
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
         int clusterId = 0;
-        String clusterName = createClusterNameHasCid(clusters.get(0));
+        String[] cluster = createClusterNameHasCid(clusters.get(0));
         int idx = 0;
         Set<String> subKeySet = new HashSet<>();
         List<String> busKeySet = new ArrayList<>();
         List<String> bikeKeySet = new ArrayList<>();
         for(int i=0; i<clusters.size(); i++){
             if(clusters.get(i)[3]==null){
-                putClusterSet(clusterName,subKeySet,busKeySet,bikeKeySet);
+                putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
                 idx = i;
                 break;
             } else {
                 if((int)clusters.get(i)[3] != clusterId){
-                    putClusterSet(clusterName,subKeySet,busKeySet,bikeKeySet);
+                    putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
                     clusterId = (int) clusters.get(i)[3];
-                    clusterName = createClusterNameHasCid(clusters.get(i));
+                    cluster = createClusterNameHasCid(clusters.get(i));
                 }
                 // 클러스터 디티오를 만들 필요가 없음. 클러스터 네임이 바뀌는 단위로 그 id 배열들을 만들어 놔야함.
                 if("subway".equals(clusters.get(i)[0]))
@@ -110,35 +110,44 @@ public class clusterNaming {
             if(v.get("subway")!=null)
                 dto.setClusterSub(v.get("subway").toArray(new String[0]));
             dto.setClusterName(k);
+            dto.setGeomTable(v.get("geom_t").get(0));
             dto.setJourneyNo(1);
             lists.add(dto);
-            System.out.printf("%s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"));
+            System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"),v.get("geom_t"));
             System.out.println();
         }
 //        clusterKeySet.forEach((k,v)->{
 //
 //        });
-        //paramsService.createMarkerCluster(lists);
+        clustersService.createMarkerCluster(lists);
 
 
     }
 
-    public String createClusterNameHasCid(Object[] cluster){
-        String clusterName = "";
-        if("subway".equals(cluster[0]))
-            clusterName = (String) cluster[2];
-        else if ("bus".equals(cluster[0]))
-            clusterName = region.findRegionNameByBus((String) cluster[1]); //지하철이 없는 클러스터의 경우 행정경계 조회
-        else
-            clusterName = region.findRegionNameByBike((String) cluster[1]);
+    public String[] createClusterNameHasCid(Object[] cluster){
+        String[] clusterName = new String[2];
+        if("subway".equals(cluster[0])){
+            clusterName[0] = (String) cluster[2];
+            clusterName[1] = "subway";
+        } else if ("bus".equals(cluster[0])){
+            clusterName[0] = region.findRegionNameByBus((String) cluster[1]); //지하철이 없는 클러스터의 경우 행정경계 조회
+            clusterName[1] = "buses";
+        } else {
+            clusterName[0] = region.findRegionNameByBike((String) cluster[1]);
+            clusterName[1] = "bikes";
+        }
         return clusterName;
     }
 
-    public void putClusterSet(String clusterName, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
+    public void putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
         List<String> subs = List.copyOf(subKeySet);
         List<String> buses = List.copyOf(busKeySet);
         List<String> bikes = List.copyOf(bikeKeySet);
+        List<String> geom = new ArrayList<>();
+        geom.add(geomTable);
         Map<String,List<String>> map = new HashMap<>();
+        map.put("geom_t",geom);
+        //System.out.println("geom_t:"+map.get("geom_t"));
         if(subKeySet.size()>0)
             map.put("subway",subs);
         if(busKeySet.size()>0)
@@ -152,21 +161,26 @@ public class clusterNaming {
     }
 
     public void createClusterNameHasNotCid(long jno, Object[] cluster){
-        String clusterName = null;
+        String[] clusterInfo = new String[2];
         if("bus".equals(cluster[0]))
-            clusterName = journey.containsWhereBus(jno,(String)cluster[1]);
+            clusterInfo[0] = journey.containsWhereBus(jno,(String)cluster[1]);
         else if ("subway".equals(cluster[0]))
-            clusterName = journey.containsWhereSub(jno,(String)cluster[2]);
+            clusterInfo[0] = journey.containsWhereSub(jno,(String)cluster[2]);
         else
-            clusterName = journey.containsWhereBike(jno,(String)cluster[1]);
-        if(clusterName==null)
-            clusterName = (String)cluster[2];
+            clusterInfo[0] = journey.containsWhereBike(jno,(String)cluster[1]);
+        if(clusterInfo[0]==null){
+            clusterInfo[0] = (String)cluster[2];
+            clusterInfo[1] = (String) cluster[0];
+        } else {
+            clusterInfo[1] = "from_to_geo";
+        }
 //        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
 //                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
 //                .add((String)cluster[1]);
-        Map<String, List<String>> innerMap = clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>());
+        Map<String, List<String>> innerMap = clusterKeySet.computeIfAbsent(clusterInfo[0], k -> new HashMap<>());
+        innerMap.putIfAbsent("geom_t",List.of(clusterInfo[1]));
         List<String> list = innerMap.computeIfAbsent((String) cluster[0], k -> new ArrayList<>());
-        if ("subway".equals(cluster[0])) {
+        if("subway".equals(cluster[0])) {
             list.add((String) cluster[2]);
         } else {
             list.add((String) cluster[1]);

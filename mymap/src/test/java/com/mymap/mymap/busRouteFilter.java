@@ -1,6 +1,9 @@
 package com.mymap.mymap;
 
-import com.mymap.mymap.domain.params.*;
+import com.mymap.mymap.domain.clusters.*;
+import com.mymap.mymap.domain.clusters.dto.FilteredBusDTO;
+import com.mymap.mymap.domain.clusters.repository.FilteredBusRepository;
+import com.mymap.mymap.domain.clusters.repository.MarkerClusterRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +31,7 @@ class busRouteFilter {
 	@Autowired
 	private MarkerClusterRepository markerClusterRepository;
 	@Autowired
-	private ParamsService paramsService;
+	private ClustersService clustersService;
 
 	@Test
 	void way3() {
@@ -427,14 +430,14 @@ class busRouteFilter {
 		});
 		freepass.forEach(k-> System.out.println("freepass: "+k));
 		d2arpass.forEach(k->System.out.println("d2pass: "+k));
-		//paramsService.createFilteredBus(lists);
+		//clustersService.createFilteredBus(lists);
 
 	}
 
 	public FilteredBusDTO createFilteredBus(String k){
 		System.out.println("in func: "+k);
 		FilteredBusDTO dto = new FilteredBusDTO();
-		String clusterName = paramsService.findByArsId(1L,k);
+		String clusterName = clustersService.findByArsId(1L,k);
 		dto.setJourneyNo(1L);
 		dto.setClusterName(clusterName);
 		dto.setArsId(k);

@@ -1,8 +1,12 @@
-package com.mymap.mymap.domain.params;
+package com.mymap.mymap.domain.clusters.repository;
 
+import com.mymap.mymap.domain.clusters.entity.Journey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface JourneyRepository extends JpaRepository<Journey,Long> {
     @Query(value = " select case " +
@@ -37,4 +41,7 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
             " and (:id = any(j.from_bike) " +
             " or :id = any(j.to_bike))", nativeQuery = true)
     String containsWhereBike(@Param("jno") long jno, @Param("id") String id);
+
+    @Query( " select j.no from Journey j where j.userNo = :userNo ")
+    Optional<List<Long>> findByUserNo(@Param("userNo") Long principal);
 }
