@@ -1,21 +1,15 @@
 package com.mymap.mymap;
 
-import com.mymap.mymap.domain.FromToGeomRepository;
-import com.mymap.mymap.domain.SubwayRepository;
-import com.mymap.mymap.domain.clusters.ClustersService;
-import com.mymap.mymap.domain.clusters.dto.MarkerClusterDTO;
-import com.mymap.mymap.domain.geoms.MarkerDTO;
-import com.mymap.mymap.domain.user.User;
-import com.mymap.mymap.domain.user.UserRepository;
+import com.mymap.domain.SubwayRepository;
+import com.mymap.domain.clusters.ClustersService;
+import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.geoms.MarkerDTO;
+import com.mymap.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.util.List;
-import java.util.Optional;
 
 @SpringBootTest
 public class DBtest {
@@ -30,7 +24,7 @@ public class DBtest {
 //        Optional<User> rooney = userRepository.findByUserId("rooney");
 //        System.out.println(rooney.get().getPassword());
         List<MarkerClusterDTO> lists = clustersService.findMarkerClusterByJno(1L);
-        List<MarkerDTO> geoms = clustersService.findGeoms(lists, 1L);
+        List<MarkerDTO> geoms = clustersService.findGeoms(lists, 2L);
         for(MarkerDTO dto : geoms) {
             System.out.println(dto.getClusterName() + dto.getStName() + dto.getGeom());
         }

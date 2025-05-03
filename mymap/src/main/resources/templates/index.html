@@ -30,7 +30,7 @@
             sessionStorage.setItem("token",r.accessToken);
             if(sessionStorage.getItem("token")){
                 console.log(sessionStorage.getItem("token"));
-                window.location.href = "/main";
+                window.location.href = "/home/main";
             }
         }).catch(error=>{
             console.log("error: ",error);

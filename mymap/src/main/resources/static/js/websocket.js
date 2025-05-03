@@ -1,31 +1,59 @@
-window.onload = function () {
+window.onload = await function () {
+    let dataSet;
+    async function fetchData(){
+        const token = sessionStorage.getItem('token');
+        try {
+            const response = await fetch("/api/map_msg",{
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body : JSON.stringify({ jno : window.location.pathname.split("/")[3] })
+            });
+            const data = await response.json();
+            //const jsonStr = JSON.stringify(data);
+            //const sizeInBytes = new TextEncoder().encode(jsonStr).length;
+            //console.log(`JSON size: ${sizeInBytes} bytes`);
+            return data;
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+
+    function removeNulls(obj) {
+      if (Array.isArray(obj)) {
+        return obj
+          .map(removeNulls)              // 배열 내부 요소도 재귀 처리
+          .filter(item => item !== null && item !== undefined);
+      } else if (obj !== null && typeof obj === 'object') {
+        return Object.entries(obj)
+          .reduce((acc, [key, value]) => {
+            const cleaned = removeNulls(value); // 재귀 처리
+            if (cleaned !== null && cleaned !== undefined) {
+              acc[key] = cleaned;
+            }
+            return acc;
+          }, {});
+      } else {
+        return obj;
+      }
+    }
+
+    fetchData().then(data => dataSet = removeNulls(data));
+
     // 사용자가 들어오면 웹소켓 객체 생성
     const webSocket = new WebSocket("ws://localhost:8090/mymap_ws/ws");
 
     webSocket.onopen = function(event) {
         console.log("Connected to WebSocket server.");
-        // 지도 UI 터치 시 해당 역의 param 요청 조건 추가해야됨
-        fetch("/api/params",{
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-                }
-        }).then(res => {
-            if (!res.ok) throw new Error("인증 실패 또는 권한 없음",res.status);
-            return res.json();
-          })
-          .then(data => {
-            console.log("유저 정보:", data);  // 백엔드에서 토큰 검증 후 응답
-          })
-          .catch(err => {
-            console.error("API 요청 실패:", err);
-          });
+        //webSocket.send()
     };
     // 채팅 메시지의 요소를 메시지 영역에 동적 추가
     webSocket.onmessage = function(event) {
         let data = event.data;
-
     };
 
     webSocket.onclose = function(event) {
@@ -35,22 +63,12 @@ window.onload = function () {
     webSocket.onerror = function(event) {
         console.error("WebSocket error: " + event.data);
     };
-//    // 엔터 버튼을 누르거나, 전송 버튼을 클릭 시 채팅 메시지 서버로 전송
-//    const chatmsg = document.getElementsByName("content")[0];
-//    chatmsg.onkeydown=function (e) {
-//        if(chatmsg.value !==''){
-//            if(e.key==='Enter'){
-//                webSocket.send(chatmsg.value);
-//                chatmsg.value = '';
-//            }
-//        }
-//    };
-//    document.getElementById("chatBtn").onclick=function () {
-//        if(chatmsg.value !=='') {
-//            webSocket.send(chatmsg.value);
-//            chatmsg.value = '';
-//        }
-//    };
+    // 집 버튼 클릭 시 메시지 전송
+    const house = document.querySelector("#house");
+    house.addEventListener("click", function (e) {
+        console.log(dataSet);
+        webSocket.send(JSON.stringify(dataSet["집"]));
+    });
 
 
 }

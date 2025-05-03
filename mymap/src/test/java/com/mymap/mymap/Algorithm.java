@@ -30,6 +30,7 @@ public class Algorithm {
 
         lengthOfLastWord("hello   ");
         lengthOfLastWord2("hello   ");
+        String b = "buy";
     }
 
     public int lengthOfLastWord(String s) {
@@ -59,5 +60,25 @@ public class Algorithm {
         }
         System.out.println(System.currentTimeMillis());
         return answer;
+    }
+
+    @Test
+    public boolean canConstruct() {
+        String ransomNote = "aa";
+        String magazine = "ab";
+        if(ransomNote.length()>magazine.length()){
+            return false;
+        } else {
+            int j=0;
+            boolean answer = true;
+            while(j<ransomNote.length()){
+                if(magazine.contains(ransomNote.substring(0,1))){
+                    answer = false;
+                    break;
+                } else
+                    j++;
+            }
+            return answer;
+        }
     }
 }

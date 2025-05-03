@@ -1,9 +1,9 @@
 package com.mymap.mymap;
 
-import com.mymap.mymap.domain.*;
-import com.mymap.mymap.domain.clusters.repository.JourneyRepository;
-import com.mymap.mymap.domain.clusters.dto.MarkerClusterDTO;
-import com.mymap.mymap.domain.clusters.ClustersService;
+import com.mymap.domain.*;
+import com.mymap.domain.clusters.repository.JourneyRepository;
+import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.ClustersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
