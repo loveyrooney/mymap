@@ -12,6 +12,20 @@ window.onload = await function () {
                 },
                 body : JSON.stringify({ jno : window.location.pathname.split("/")[3] })
             });
+            // 여기서 401이 나올 경우 refresh 요청을 해야 된다. 이거 말고 await 으로 수정
+            if (response.status === 401) {
+                fetch("/auth/refresh", {
+                     method: 'POST',
+                     credentials: 'include'
+                }).then(res=>{
+                     if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
+                     return res.json();
+                }).catch (e => {
+                     console.log(e);
+                     alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+                     window.location.href = '/auth/login';
+                });
+            }
             const data = await response.json();
             //const jsonStr = JSON.stringify(data);
             //const sizeInBytes = new TextEncoder().encode(jsonStr).length;

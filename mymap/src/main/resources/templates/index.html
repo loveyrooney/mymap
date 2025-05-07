@@ -11,11 +11,11 @@
     <input type="text" name="password" placeholder="pw">
     <button type="button" id="login">로그인</button>
 </form>
-<script>
+<script type="module">
     const form = document.querySelector("form");
     document.querySelector("#login").addEventListener("click",()=>{
         console.log(form.userId);
-        fetch("/login",{
+        fetch("/auth/login",{
             method : "POST",
             headers: {
                 'Accept': 'application/json',
@@ -30,7 +30,7 @@
             sessionStorage.setItem("token",r.accessToken);
             if(sessionStorage.getItem("token")){
                 console.log(sessionStorage.getItem("token"));
-                window.location.href = "/home/main";
+                window.location.href = "/view/main";
             }
         }).catch(error=>{
             console.log("error: ",error);

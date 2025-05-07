@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @Controller
-@RequestMapping("/home")
+@RequestMapping("/view")
 @RequiredArgsConstructor
 public class RenderController {
 

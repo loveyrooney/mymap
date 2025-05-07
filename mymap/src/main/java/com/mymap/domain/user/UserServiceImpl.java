@@ -2,11 +2,15 @@ package com.mymap.domain.user;
 
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 @Log4j2
@@ -15,6 +19,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public long login(UserDTO userDTO) {
@@ -29,5 +34,26 @@ public class UserServiceImpl implements UserService {
                 })
                 .orElseThrow(()-> new BusinessException(ErrorCode.NOT_REGISTERED));
         return result;
+    }
+
+    @Override
+    public void storeRefreshToken(String token, long userNo, Date expiration) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(token)
+                .userNo(userNo)
+                .expiryDate(expiration)
+                .build();
+        refreshTokenRepository.save(refreshToken);
+    }
+
+    @Override
+    public boolean isValid(long userNo) {
+        return refreshTokenRepository.findByUserNo(userNo).isPresent();
+    }
+
+    @Override
+    @Transactional
+    public void deleteToken(long userNo) {
+        refreshTokenRepository.deleteByUserNo(userNo);
     }
 }

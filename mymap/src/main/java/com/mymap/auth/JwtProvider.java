@@ -10,6 +10,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 
@@ -21,10 +23,11 @@ public class JwtProvider {
 
     @Value("${jwt.private-key}")
     private String jwtPrivateKey;
-    private final long EXPIRED_TIME = 1000 * 60 * 15; // 15분
+    private final long ACCESS_EXPIRED_TIME = 60 * 15; // 15분
+    private final long REFRESH_EXPIRED_TIME = 60 * 60 * 24 * 7; // 7일
 
     // Base64로 인코딩된 개인키를 로드
-    public RSAPrivateKey loadPrivateKey() throws Exception {
+    private RSAPrivateKey loadPrivateKey() throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(jwtPrivateKey);  // 문자열을 디코딩
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -32,23 +35,29 @@ public class JwtProvider {
     }
 
     // Base64로 인코딩된 공개키를 로드
-    public RSAPublicKey loadPublicKey() throws Exception {
+    private RSAPublicKey loadPublicKey() throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(jwtPublicKey);  // 문자열을 디코딩
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return (RSAPublicKey) keyFactory.generatePublic(keySpec);
     }
 
-    // JWT 생성 (서명: RS256)
-    public String generateToken(String userNo) throws Exception {
-        RSAPrivateKey privateKey = loadPrivateKey();
+    public String generateAccessToken(String userNo) throws Exception{
+        return generateToken(userNo,ACCESS_EXPIRED_TIME);
+    }
 
-        // JWT 생성
+    public String generateRefreshToken(String userNo) throws Exception {
+        return generateToken(userNo,REFRESH_EXPIRED_TIME);
+    }
+
+    // JWT 생성 (서명: RS256)
+    private String generateToken(String userNo, long expiredTime) throws Exception {
+        RSAPrivateKey privateKey = loadPrivateKey();
         return Jwts.builder()
-                .setSubject(userNo)  // 페이로드에 사용자 정보 추가
-                .setIssuedAt(new Date())  // 발행 시간
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRED_TIME)) // 만료 시간
-                .signWith(privateKey, SignatureAlgorithm.RS256)  // 서명 (RS256)
+                .setSubject(userNo)
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(LocalDateTime.now().plusSeconds(expiredTime).atZone(ZoneId.of("Asia/Seoul")).toInstant()))
+                .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
@@ -67,4 +76,5 @@ public class JwtProvider {
             throw new RuntimeException("Invalid JWT token", e);
         }
     }
+
 }

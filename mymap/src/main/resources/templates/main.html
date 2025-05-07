@@ -6,6 +6,20 @@
 </head>
 <body>
 <h1>hello, mymap main!</h1>
-<a href="/home/map/1">집->회사</a>
+<a href="/view/map/1">집->회사</a>
+<button type="button" id="logout">logout</button>
+<script type="module">
+document.querySelector("#logout").addEventListener("click",()=>{
+    fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(() => {
+        console.log("로그아웃 완료");
+        sessionStorage.removeItem("token");
+    })
+    .catch(e=> console.log("로그아웃 실패",e));
+});
+</script>
 </body>
 </html>
