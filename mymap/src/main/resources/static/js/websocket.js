@@ -1,7 +1,7 @@
 window.onload = await function () {
     let dataSet;
+    const token = sessionStorage.getItem('token');
     async function fetchData(){
-        const token = sessionStorage.getItem('token');
         try {
             const response = await fetch("/api/map_msg",{
                 method: "POST",
@@ -42,33 +42,40 @@ window.onload = await function () {
       }
     }
 
-    fetchData().then(data => dataSet = removeNulls(data));
+    fetchData().then(data => {
+        dataSet = removeNulls(data);
+        if(dataSet==undefined)
+            throw new Error("web authentication failed");
+    })
+    .then(()=>{
+        // 사용자가 들어오면 웹소켓 객체 생성
+        const webSocket = new WebSocket("ws://localhost:8090/mymap_ws/ws");
 
-    // 사용자가 들어오면 웹소켓 객체 생성
-    const webSocket = new WebSocket("ws://localhost:8090/mymap_ws/ws");
+        webSocket.onopen = function(event) {
+            console.log("Connected to WebSocket server.");
+            //webSocket.send("hello");
+            webSocket.send(token);
+        };
+        // 채팅 메시지의 요소를 메시지 영역에 동적 추가
+        webSocket.onmessage = function(event) {
+            let data = event.data;
+            console.log(data);
+        };
 
-    webSocket.onopen = function(event) {
-        console.log("Connected to WebSocket server.");
-        //webSocket.send()
-    };
-    // 채팅 메시지의 요소를 메시지 영역에 동적 추가
-    webSocket.onmessage = function(event) {
-        let data = event.data;
-    };
+        webSocket.onclose = function(event) {
+            console.log("Connection closed.");
+        };
 
-    webSocket.onclose = function(event) {
-        console.log("Connection closed.");
-    };
-
-    webSocket.onerror = function(event) {
-        console.error("WebSocket error: " + event.data);
-    };
-    // 집 버튼 클릭 시 메시지 전송
-    const house = document.querySelector("#house");
-    house.addEventListener("click", function (e) {
-        console.log(dataSet);
-        webSocket.send(JSON.stringify(dataSet["집"]));
-    });
-
+        webSocket.onerror = function(event) {
+            console.error("WebSocket error: " + event.data);
+        };
+        // 집 버튼 클릭 시 메시지 전송
+        const house = document.querySelector("#house");
+        house.addEventListener("click", function (e) {
+            console.log(dataSet);
+            webSocket.send(JSON.stringify(dataSet["용산"]));
+        });
+    })
+    .catch(e=> console.log(e));
 
 }

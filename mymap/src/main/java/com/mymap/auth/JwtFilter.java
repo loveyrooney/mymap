@@ -43,6 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 // 토큰이 유효하지 않은 경우 예외 처리
+                System.out.println("jwtFilter exception: "+e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
