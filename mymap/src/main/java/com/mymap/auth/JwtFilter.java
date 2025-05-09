@@ -46,6 +46,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 토큰이 유효하지 않은 경우 예외 처리
                 System.out.println("jwtFilter exception: "+e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin")); // 꼭 필요
+                response.setHeader("Access-Control-Allow-Credentials", "true"); // 쿠키 쓰는 경우 필수
+
+                // 선택적으로 content-type도 지정
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"Unauthorized\"}");
                 return;
             }
         }

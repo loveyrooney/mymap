@@ -81,6 +81,7 @@ public class AuthController {
         String userNo = jwtProvider.validateToken(oldToken).getSubject();
         if (userNo!=null)
             userService.deleteToken(Long.parseLong(userNo));
+
         ResponseCookie cookie = ResponseCookie.from("refreshToken", oldToken)
                 .httpOnly(true)
                 .secure(true) // HTTPS 환경에서만 사용
