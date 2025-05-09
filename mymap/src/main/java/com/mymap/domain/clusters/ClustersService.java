@@ -18,5 +18,4 @@ public interface ClustersService {
     List<MarkerClusterDTO> findMarkerClusterByJno(long jno);
     List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters,Long auth);
     Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList);
-    long createJourney(JourneyDTO dto);
 }

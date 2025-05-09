@@ -6,7 +6,6 @@ import com.mymap.domain.FromToGeomRepository;
 import com.mymap.domain.SubwayRepository;
 import com.mymap.domain.clusters.dto.ClusterMsgDTO;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
-import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.clusters.entity.*;
 import com.mymap.domain.clusters.repository.FilteredBusRepository;
@@ -18,7 +17,6 @@ import com.mymap.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,7 +36,6 @@ public class ClustersServiceImpl implements ClustersService {
     private final SubwayRepository subwayRepository;
     private final BikeRepository bikeRepository;
     private final FromToGeomRepository fromToGeomRepository;
-
 
     @Override
     @Transactional
@@ -158,21 +155,6 @@ public class ClustersServiceImpl implements ClustersService {
             map.putIfAbsent(dto.getClusterName(),msg);
         }
         return map;
-    }
-
-    @Override
-    @Transactional
-    public long createJourney(JourneyDTO dto) {
-        Journey entity = Journey.builder()
-                .userNo(dto.getUserNo()).fromName(dto.getFromName()).toName(dto.getToName()).fromBus(dto.getFromBus()).tfBus(dto.getTfBus()).toBus(dto.getToBus()).fromSub(dto.getFromSub()).tfSub(dto.getTfSub()).toSub(dto.getToSub()).fromBike(dto.getFromBike()).tfBike(dto.getTfBike()).toBike(dto.getToBike())
-                .build();
-        Journey save = journeyRepository.save(entity);
-
-        return save.getNo();
-    }
-
-    private void callRoutes(){
-
     }
 
 
