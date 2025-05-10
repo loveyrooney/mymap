@@ -4,17 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name="journey")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter
+@Getter @Setter
 public class Journey {
     @Id
     private long no;

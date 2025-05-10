@@ -68,7 +68,7 @@ public class BusFilterServiceImpl implements BusFilterService{
         return lists;
     }
 
-    public Map<String,Set<String>> callRoutes(JourneyDTO journey){
+    private Map<String,Set<String>> callRoutes(JourneyDTO journey){
         StringBuilder url = new StringBuilder();
         url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
         url.append("?serviceKey="+topisKey+"&arsId=");
@@ -99,12 +99,12 @@ public class BusFilterServiceImpl implements BusFilterService{
                 for (int i = 0; i < nodes.getLength(); i++) {
                     String adrvs = nodes.item(i).getTextContent();
                     busRouteAbrvs.add(adrvs);
-                    System.out.println(id+","+adrvs);
+                    //System.out.println(id+","+adrvs);
                 }
                 routes.putIfAbsent(id,busRouteAbrvs);
             } catch (Exception e){
                 //System.out.println(e);
-                throw new BusinessException(ErrorCode.JOURNEY_CREATE_FAILED);
+                throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
             }
         }
         return routes;
@@ -191,17 +191,14 @@ public class BusFilterServiceImpl implements BusFilterService{
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
         RouteGraph graph = busRouteFilterUtil.getGraph();
-        System.out.println("in sort method: "+groups.get("transfer"));
         for(String tk : groups.get("transfer")){
             int fanOut = graph.countFanOut(tk);
-            System.out.println("in sort method fanout: "+fanOut);
             if(fanOut>1){
                 Set<String> sortedSet = busRouteFilterUtil.sortRoutes(routes.get(tk),graph.findFanOutAdjNodes(tk),"out");
                 System.out.println("outSort_"+tk+" : "+sortedSet);
                 routes.put(tk,sortedSet);
             } else {
                 int fanIn = graph.countFanIn(tk);
-                System.out.println("in sort method fanin: "+fanIn);
                 if(fanIn>1){
                     Set<String> sortedSet = busRouteFilterUtil.sortRoutes(routes.get(tk),graph.findFanInAdjNodes(tk),"in");
                     System.out.println("inSort_"+tk+" : "+sortedSet);
@@ -212,7 +209,6 @@ public class BusFilterServiceImpl implements BusFilterService{
     }
 
     private List<FilteredBusDTO> createFilteredBusDTOs(Set<String> group, long journeyNo) {
-        //System.out.println("=== 최종 ===");
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         List<FilteredBusDTO> lists = new ArrayList<>();
         Iterator<String> iterator = group.iterator();

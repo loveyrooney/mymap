@@ -13,6 +13,8 @@ public class JourneyDTO {
     private long userNo;
     private String fromName;
     private String toName;
+    private double[] fromGeoms;
+    private double[] toGeoms;
     // bus 는 arsId
     private String[] fromBus;
     private String[] tfBus;

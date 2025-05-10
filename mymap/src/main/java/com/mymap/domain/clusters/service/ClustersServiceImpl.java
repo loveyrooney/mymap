@@ -9,17 +9,15 @@ import com.mymap.domain.clusters.entity.*;
 import com.mymap.domain.clusters.repository.FilteredBusRepository;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.repository.MarkerClusterRepository;
-import com.mymap.domain.geoms.MarkerDTO;
+import com.mymap.domain.geoms.GeomService;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,11 +28,9 @@ public class ClustersServiceImpl implements ClustersService {
     private final MarkerClusterRepository markerClusterRepository;
     private final FilteredBusRepository filteredBusRepository;
     private final JourneyRepository journeyRepository;
-    private final BusRepository busRepository;
     private final SubwayRepository subwayRepository;
-    private final BikeRepository bikeRepository;
-    private final FromToGeomRepository fromToGeomRepository;
     private final RegionRepository regionRepository;
+    private final GeomService geomService;
     private final Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
 
@@ -46,6 +42,56 @@ public class ClustersServiceImpl implements ClustersService {
                 .build();
         Journey save = journeyRepository.save(entity);
         return save.getNo();
+    }
+
+    @Override
+    @Transactional
+    public void updateJourney(JourneyDTO dto) {
+        Journey journey = journeyRepository.findByNo(dto.getNo())
+                .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
+        try {
+            Class<?> dtoClass = dto.getClass();
+            Class<?> entityClass = journey.getClass();
+
+            for (Field dtoField : dtoClass.getDeclaredFields()) {
+                dtoField.setAccessible(true);
+                Object newValue = dtoField.get(dto);
+
+                if (newValue != null) {
+                    try {
+                        Field entityField = entityClass.getDeclaredField(dtoField.getName());
+                        entityField.setAccessible(true);
+                        Object oldValue = entityField.get(journey);
+
+                        if (!newValue.equals(oldValue)) {
+                            entityField.set(journey, newValue);
+                        }
+                    } catch (NoSuchFieldException ignored) {
+                        // DTO에만 있는 필드일 수 있으므로 무시
+                    }
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new BusinessException(ErrorCode.JOURNEY_UPDATE_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteJourney(long no) {
+        journeyRepository.deleteByNo(no);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMarkerCluster(long no) {
+        markerClusterRepository.deleteAllByJno(no);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFilteredBus(long no) {
+        filteredBusRepository.deleteAllByJno(no);
     }
 
     @Override
@@ -66,7 +112,7 @@ public class ClustersServiceImpl implements ClustersService {
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
         int clusterId = 0;
         String[] cluster = createClusterNameHasCid(clusters.get(0));
-        int idx = 0;
+        int hasNotCidStartIdx = 0;
         Set<String> subKeySet = new HashSet<>();
         List<String> busKeySet = new ArrayList<>();
         List<String> bikeKeySet = new ArrayList<>();
@@ -74,7 +120,7 @@ public class ClustersServiceImpl implements ClustersService {
         for(int i=0; i<clusters.size(); i++){
             if(clusters.get(i)[3]==null){
                 putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
-                idx = i;
+                hasNotCidStartIdx = i;
                 break;
             } else {
                 if((int)clusters.get(i)[3] != clusterId){
@@ -93,8 +139,8 @@ public class ClustersServiceImpl implements ClustersService {
 
         // 여기서는 얘가 사용자가 지정한 출발지인지, 도착지인지를 찾아서 그 이름으로 클러스터네임 지정
         // 출발지도 도착지도 아닌 경우 정류장 이름으로 클러스터네임 지정
-        for(int i=idx; i<clusters.size(); i++){
-            createClusterNameHasNotCid(1L,clusters.get(i));
+        for(int i=hasNotCidStartIdx; i<clusters.size(); i++){
+            createClusterNameHasNotCid(journeyNo,clusters.get(i));
         }
 
         List<MarkerClusterDTO> lists = new ArrayList<>();
@@ -111,7 +157,7 @@ public class ClustersServiceImpl implements ClustersService {
                 dto.setClusterSub(v.get("subway").toArray(new String[0]));
             dto.setClusterName(k);
             dto.setGeomTable(v.get("geom_t").get(0));
-            dto.setJourneyNo(1);
+            dto.setJourneyNo(journeyNo);
             lists.add(dto);
             //System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"),v.get("geom_t"));
             //System.out.println();
@@ -206,12 +252,9 @@ public class ClustersServiceImpl implements ClustersService {
     }
 
     @Override
-    public JourneyDTO findJourneyByNo(Long journeyNo) {
-        Journey entity = journeyRepository.findByNo(journeyNo)
+    public Journey findJourneyByNo(Long journeyNo) {
+        return journeyRepository.findByNo(journeyNo)
                 .orElseThrow(()->new BusinessException(ErrorCode.NOT_REGISTERED));
-        return JourneyDTO.builder()
-                .no(entity.getNo()).fromName(entity.getFromName()).toName(entity.getToName()).fromSub(entity.getFromSub()).tfSub(entity.getTfSub()).toSub(entity.getToSub()).fromBus(entity.getFromBus()).tfBus(entity.getTfBus()).toBus(entity.getToBus()).fromBike(entity.getFromBike()).tfBike(entity.getTfBike()).toBike(entity.getToBike()).userNo(entity.getUserNo())
-                .build();
     }
 
     @Override
@@ -240,39 +283,6 @@ public class ClustersServiceImpl implements ClustersService {
                         .geomTable(entity.getGeomTable())
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters,Long auth) {
-        List<MarkerDTO> markers = new ArrayList<>();
-        for(MarkerClusterDTO dto : clusters){
-            MarkerDTO m;
-            if("from_to_geo".equals(dto.getGeomTable())){
-                m = fromToGeomRepository.findByName(auth,dto.getClusterName())
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-            } else if("subway".equals(dto.getGeomTable())){
-                Pageable page = PageRequest.of(0, 1, Sort.by("no").ascending());
-                Object[] subs = subwayRepository.findByStName(dto.getClusterName(),page)
-                        .getContent().stream().findFirst()
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m = MarkerDTO.builder()
-                        .clusterName((String)subs[0])
-                        .stName((String)subs[1])
-                        .geom((String)subs[2].toString())
-                        .build();
-            } else if("bus".equals(dto.getGeomTable()) || "buses".equals(dto.getGeomTable())){
-                m = busRepository.findByArsId(dto.getClusterBus()[0])
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m.setClusterName(dto.getClusterName());
-            } else if("bike".equals(dto.getGeomTable()) || "bikes".equals(dto.getGeomTable())){
-                m = bikeRepository.findByStId(dto.getClusterBike()[0])
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m.setClusterName(dto.getClusterName());
-            } else
-                throw new BusinessException(ErrorCode.NOT_EXIST);
-            markers.add(m);
-        }
-        return markers;
     }
 
     @Override

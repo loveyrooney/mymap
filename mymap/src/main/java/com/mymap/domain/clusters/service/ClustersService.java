@@ -17,9 +17,12 @@ public interface ClustersService {
     void createFilteredBus(List<FilteredBusDTO> lists);
     String findByArsId(long jno, String arsId);
     List<Long> findJourneyAllByUserNo(Long principal);
-    JourneyDTO findJourneyByNo(Long journeyNo);
+    Journey findJourneyByNo(Long journeyNo);
     List<FilteredBusDTO> findFilterBusByJno(long jno);
     List<MarkerClusterDTO> findMarkerClusterByJno(long jno);
-    List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters,Long auth);
     Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList);
+    void updateJourney(JourneyDTO dto);
+    void deleteMarkerCluster(long no);
+    void deleteFilteredBus(long no);
+    void deleteJourney(long no);
 }

@@ -3,6 +3,7 @@ package com.mymap.mymap;
 import com.mymap.domain.*;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
 import com.mymap.domain.clusters.dto.JourneyDTO;
+import com.mymap.domain.clusters.entity.Journey;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.clusters.service.BusFilterService;
@@ -190,8 +191,15 @@ public class ClusterNaming {
 
     @Test
     public void runBusFilterTest(){
-        JourneyDTO journey = clustersService.findJourneyByNo(1L);
-        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(journey);
+        Journey journey = clustersService.findJourneyByNo(1L);
+        JourneyDTO jdto = JourneyDTO.builder()
+                .no(journey.getNo()).userNo(journey.getUserNo())
+                .fromName(journey.getFromName()).toName(journey.getToName())
+                .fromBus(journey.getFromBus()).tfBus(journey.getTfBus()).toBus(journey.getToBus())
+                .fromSub(journey.getFromSub()).tfSub(journey.getTfSub()).toSub(journey.getToSub())
+                .fromBike(journey.getFromBike()).tfBike(journey.getTfBike()).toBike(journey.getToBike())
+                .build();
+        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(jdto);
         //clustersService.createFilteredBus(filteredBusDTOS);
         for(FilteredBusDTO dto : filteredBusDTOS){
             System.out.println(dto.getClusterName()+":"+dto.getArsId());

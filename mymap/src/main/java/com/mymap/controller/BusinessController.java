@@ -6,6 +6,7 @@ import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.service.BusFilterService;
+import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -21,12 +22,14 @@ import java.util.Map;
 public class BusinessController {
     private final ClustersService clustersService;
     private final BusFilterService busFilterService;
+    private final GeomService geomService;
 
-    @PostMapping("/register")
-    public long register(@RequestBody JourneyDTO dto){
+    @PostMapping("/journey")
+    public long registerJourney(@RequestBody JourneyDTO dto){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         dto.setUserNo((long)auth.getPrincipal());
         long journeyNo = clustersService.createJourney(dto);
+        geomService.createFromToGeoms(dto);
         List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(journeyNo);
         clustersService.createMarkerCluster(markerClusterDTOS);
         dto.setNo(journeyNo);
@@ -35,7 +38,27 @@ public class BusinessController {
         return journeyNo;
     }
 
-    @PostMapping("/journeys")
+    @PatchMapping("/journey")
+    public long updateJourney(@RequestBody JourneyDTO dto){
+        clustersService.updateJourney(dto);
+        clustersService.deleteMarkerCluster(dto.getNo());
+        clustersService.deleteFilteredBus(dto.getNo());
+        List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(dto.getNo());
+        clustersService.createMarkerCluster(markerClusterDTOS);
+        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(dto);
+        clustersService.createFilteredBus(filteredBusDTOS);
+        return dto.getNo();
+    }
+
+    @DeleteMapping("/journey")
+    public void deleteJourney(@RequestBody JourneyDTO dto){
+        clustersService.deleteJourney(dto.getNo());
+        geomService.deleteFromToGeoms(dto);
+        clustersService.deleteMarkerCluster(dto.getNo());
+        clustersService.deleteFilteredBus(dto.getNo());
+    }
+
+    @GetMapping("/journeys")
     public List<Long> journeys(){
         // main 페이지에서 fetch 요청을 받는 곳. 해당 유저의 journey list 를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -52,7 +75,7 @@ public class BusinessController {
         System.out.println("map: "+auth.getPrincipal());
         List<MarkerClusterDTO> clusters = clustersService.findMarkerClusterByJno(jno);
         // 지금은 클러스터 좌표만 보내주고 있는데 각각의 정류장 좌표도 보내줘야 함.
-        return clustersService.findGeoms(clusters,(Long)auth.getPrincipal());
+        return geomService.findGeoms(clusters,(Long)auth.getPrincipal());
     }
 
     @PostMapping("/map_msg")

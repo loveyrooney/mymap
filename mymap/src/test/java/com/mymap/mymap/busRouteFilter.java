@@ -587,7 +587,7 @@ class busRouteFilter {
 
 	@Test
 	public void apiCallTest(){
-		JourneyDTO journey = clustersService.findJourneyByNo(1L);
+		Journey journey = clustersService.findJourneyByNo(1L);
 		StringBuilder url = new StringBuilder();
 		url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
 		url.append("?serviceKey="+topisKey+"&arsId=");
@@ -623,15 +623,15 @@ class busRouteFilter {
 				routes.putIfAbsent(id,busRouteAbrvs);
 			} catch (Exception e){
 				//System.out.println(e);
-				throw new BusinessException(ErrorCode.JOURNEY_CREATE_FAILED);
+				throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
 			}
 		}
 	}
 
 	@Test
 	public void abstractClusterTest() {
-		List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(1L);
-		//clustersService.createMarkerCluster(markerClusterDTOS);
+		List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(3L);
+		clustersService.createMarkerCluster(markerClusterDTOS);
 		for(MarkerClusterDTO dto : markerClusterDTOS){
 			System.out.println(dto.getClusterName());
 			if(dto.getClusterBus()!=null){
