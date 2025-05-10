@@ -1,19 +1,23 @@
-package com.mymap.domain.clusters;
+package com.mymap.domain.clusters.service;
 
 import com.mymap.domain.clusters.dto.ClusterMsgDTO;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
 import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.entity.Journey;
 import com.mymap.domain.geoms.MarkerDTO;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ClustersService {
+    long createJourney(JourneyDTO dto);
     void createMarkerCluster(List<MarkerClusterDTO> lists);
-    String findByArsId(long jno, String arsId);
+    List<MarkerClusterDTO> abstractCluster(long journeyNo);
     void createFilteredBus(List<FilteredBusDTO> lists);
-    List<Long> findAllByUserNo(Long principal);
+    String findByArsId(long jno, String arsId);
+    List<Long> findJourneyAllByUserNo(Long principal);
+    JourneyDTO findJourneyByNo(Long journeyNo);
     List<FilteredBusDTO> findFilterBusByJno(long jno);
     List<MarkerClusterDTO> findMarkerClusterByJno(long jno);
     List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters,Long auth);

@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class JourneyDTO {
+    private long no;
     private long userNo;
     private String fromName;
     private String toName;

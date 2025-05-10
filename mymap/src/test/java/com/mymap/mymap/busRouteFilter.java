@@ -1,18 +1,44 @@
 package com.mymap.mymap;
 
-import com.mymap.RouteGraph;
-import com.mymap.domain.clusters.*;
+import com.mymap.domain.clusters.RouteGraph;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
+import com.mymap.domain.clusters.dto.JourneyDTO;
+import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.entity.Journey;
 import com.mymap.domain.clusters.repository.FilteredBusRepository;
 import com.mymap.domain.clusters.repository.MarkerClusterRepository;
+import com.mymap.domain.clusters.service.BusFilterService;
+import com.mymap.domain.clusters.service.BusFilterServiceImpl;
+import com.mymap.domain.clusters.service.ClustersService;
+import com.mymap.exception.BusinessException;
+import com.mymap.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SpringBootTest
+@PropertySource("classpath:mymap_jwt.properties")
 class busRouteFilter {
 
 	HashSet<String> pobangDP = new HashSet<>(Arrays.asList("서대문11","서대문13","프리패스"));
@@ -33,6 +59,9 @@ class busRouteFilter {
 	private MarkerClusterRepository markerClusterRepository;
 	@Autowired
 	private ClustersService clustersService;
+
+	@Value("${topis-key}")
+	private String topisKey;
 
 	@Test
 	void way3() {
@@ -556,6 +585,75 @@ class busRouteFilter {
 		return sortedRoutes;
 	}
 
+	@Test
+	public void apiCallTest(){
+		JourneyDTO journey = clustersService.findJourneyByNo(1L);
+		StringBuilder url = new StringBuilder();
+		url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
+		url.append("?serviceKey="+topisKey+"&arsId=");
+		List<String> arsIds = new ArrayList<>();
+		arsIds.addAll(Arrays.asList(journey.getFromBus()));
+		arsIds.addAll(Arrays.asList(journey.getTfBus()));
+		arsIds.addAll(Arrays.asList(journey.getToBus()));
+		Map<String,Set<String>> routes = new HashMap<>();
+		for(String id : arsIds){
+			try {
+				// api call
+				URL realurl = new URL(url+id);
+				HttpURLConnection conn = (HttpURLConnection) realurl.openConnection();
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Content-type", "application/json");
+				String response = new BufferedReader(new InputStreamReader(conn.getInputStream())).readLine();
+				//System.out.println(response);
+				// response to document
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder builder = factory.newDocumentBuilder();
+				InputSource inputSource = new InputSource(new StringReader(response));
+				Document document = builder.parse(inputSource);
+				// 특정 xml 태그 abstract
+				XPath xpath = XPathFactory.newInstance().newXPath();
+				XPathExpression expr = xpath.compile("//itemList/busRouteAbrv");
+				NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+				Set<String> busRouteAbrvs = new HashSet<>();
+				for (int i = 0; i < nodes.getLength(); i++) {
+					String adrvs = nodes.item(i).getTextContent();
+					busRouteAbrvs.add(adrvs);
+					System.out.println(id+","+adrvs);
+				}
+				routes.putIfAbsent(id,busRouteAbrvs);
+			} catch (Exception e){
+				//System.out.println(e);
+				throw new BusinessException(ErrorCode.JOURNEY_CREATE_FAILED);
+			}
+		}
+	}
 
+	@Test
+	public void abstractClusterTest() {
+		List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(1L);
+		//clustersService.createMarkerCluster(markerClusterDTOS);
+		for(MarkerClusterDTO dto : markerClusterDTOS){
+			System.out.println(dto.getClusterName());
+			if(dto.getClusterBus()!=null){
+				for(String s : dto.getClusterBus()){
+					System.out.printf("%s, ",s);
+					System.out.println();
+				}
+			}
+			if(dto.getClusterSub()!=null){
+				for(String s : dto.getClusterSub()){
+					System.out.printf("%s, ",s);
+					System.out.println();
+				}
+			}
+			if(dto.getClusterBike()!=null){
+				for(String s : dto.getClusterBike()){
+					System.out.printf("%s, ",s);
+				}
+				System.out.println();
+			}
+			System.out.println("....");
+		}
+	}
 
 }

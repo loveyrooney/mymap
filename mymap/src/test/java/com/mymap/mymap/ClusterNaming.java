@@ -1,9 +1,12 @@
 package com.mymap.mymap;
 
 import com.mymap.domain.*;
+import com.mymap.domain.clusters.dto.FilteredBusDTO;
+import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
-import com.mymap.domain.clusters.ClustersService;
+import com.mymap.domain.clusters.service.BusFilterService;
+import com.mymap.domain.clusters.service.ClustersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
@@ -13,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.*;
 
 @SpringBootTest
-public class clusterNaming {
+public class ClusterNaming {
     @Autowired
     private BikeRepository bike;
     @Autowired
@@ -28,7 +31,8 @@ public class clusterNaming {
     private EntityManager entityManager;
     @Autowired
     private ClustersService clustersService;
-
+    @Autowired
+    private BusFilterService busFilterService;
     Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
     @Test
@@ -49,7 +53,7 @@ public class clusterNaming {
                 "FROM all_points\n" +
                 "order by cluster_id;";
         Query nativeQuery = entityManager.createNativeQuery(sql);
-        List<Object[]> resultList = nativeQuery.getResultList();
+        List<Object[]> resultList = (List<Object[]>) nativeQuery.getResultList();
         for(Object[] o:resultList){
             if(o[3]!=null){
                 String clusterName = createClusterNameHasCid(o)[0];
@@ -70,6 +74,7 @@ public class clusterNaming {
         Set<String> subKeySet = new HashSet<>();
         List<String> busKeySet = new ArrayList<>();
         List<String> bikeKeySet = new ArrayList<>();
+        // 클러스터 id 가 있는 경우의 클러스터 네이밍
         for(int i=0; i<clusters.size(); i++){
             if(clusters.get(i)[3]==null){
                 putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
@@ -81,7 +86,6 @@ public class clusterNaming {
                     clusterId = (int) clusters.get(i)[3];
                     cluster = createClusterNameHasCid(clusters.get(i));
                 }
-                // 클러스터 디티오를 만들 필요가 없음. 클러스터 네임이 바뀌는 단위로 그 id 배열들을 만들어 놔야함.
                 if("subway".equals(clusters.get(i)[0]))
                     subKeySet.add((String)clusters.get(i)[2]);
                 else if("bus".equals(clusters.get(i)[0]))
@@ -92,7 +96,7 @@ public class clusterNaming {
         }
 
         // 여기서는 얘가 사용자가 지정한 출발지인지, 도착지인지를 찾아서 그 이름으로 클러스터네임 지정
-        // 출발지도 도착지도 아닌 경우 얘 정류장 이름으로 클러스터네임 지정
+        // 출발지도 도착지도 아닌 경우 정류장 이름으로 클러스터네임 지정
         for(int i=idx; i<clusters.size(); i++){
             createClusterNameHasNotCid(1L,clusters.get(i));
         }
@@ -113,12 +117,9 @@ public class clusterNaming {
             dto.setGeomTable(v.get("geom_t").get(0));
             dto.setJourneyNo(1);
             lists.add(dto);
-            System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"),v.get("geom_t"));
-            System.out.println();
+            //System.out.printf("%s, %s, %s, %s, %s, %s, %s, %s",k,"bus",v.get("bus"),"subway",v.get("subway"),"bike",v.get("bike"),v.get("geom_t"));
+            //System.out.println();
         }
-//        clusterKeySet.forEach((k,v)->{
-//
-//        });
         clustersService.createMarkerCluster(lists);
 
 
@@ -184,6 +185,22 @@ public class clusterNaming {
             list.add((String) cluster[2]);
         } else {
             list.add((String) cluster[1]);
+        }
+    }
+
+    @Test
+    public void runBusFilterTest(){
+        JourneyDTO journey = clustersService.findJourneyByNo(1L);
+        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(journey);
+        //clustersService.createFilteredBus(filteredBusDTOS);
+        for(FilteredBusDTO dto : filteredBusDTOS){
+            System.out.println(dto.getClusterName()+":"+dto.getArsId());
+            if(dto.getRoutes()!=null){
+                for(String s : dto.getRoutes()){
+                    System.out.printf("%s, ",s);
+                }
+                System.out.println();
+            }
         }
     }
 

@@ -1,9 +1,11 @@
 package com.mymap.controller;
 
 import com.mymap.domain.clusters.dto.ClusterMsgDTO;
+import com.mymap.domain.clusters.dto.FilteredBusDTO;
 import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
-import com.mymap.domain.clusters.ClustersService;
+import com.mymap.domain.clusters.service.ClustersService;
+import com.mymap.domain.clusters.service.BusFilterService;
 import com.mymap.domain.geoms.MarkerDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -18,13 +20,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BusinessController {
     private final ClustersService clustersService;
+    private final BusFilterService busFilterService;
 
     @PostMapping("/register")
     public long register(@RequestBody JourneyDTO dto){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         dto.setUserNo((long)auth.getPrincipal());
         long journeyNo = clustersService.createJourney(dto);
-        return 0;
+        List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(journeyNo);
+        clustersService.createMarkerCluster(markerClusterDTOS);
+        dto.setNo(journeyNo);
+        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(dto);
+        clustersService.createFilteredBus(filteredBusDTOS);
+        return journeyNo;
     }
 
     @PostMapping("/journeys")
@@ -32,7 +40,7 @@ public class BusinessController {
         // main 페이지에서 fetch 요청을 받는 곳. 해당 유저의 journey list 를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("main: "+auth.getPrincipal());
-        return clustersService.findAllByUserNo((Long)auth.getPrincipal());
+        return clustersService.findJourneyAllByUserNo((Long)auth.getPrincipal());
     }
 
     @PostMapping("/map_geom")

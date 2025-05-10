@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface SubwayRepository extends JpaRepository<Subway,Long> {
-    @Query(value = "SELECT * FROM cluster_grouping(:uno)", nativeQuery = true)
-    List<Object[]> getClusterGrouping(@Param("uno") Long uno);
+    @Query(value = "SELECT * FROM cluster_grouping(:jno)", nativeQuery = true)
+    List<Object[]> getClusterGrouping(@Param("jno") Long jno);
 
     @Query(" select :clusterName, s.stationName, s.geom from Subway s where s.stationName = :clusterName ")
     Page<Object[]> findByStName(@Param("clusterName") String clusterName, Pageable pageable);

@@ -43,5 +43,7 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
     String containsWhereBike(@Param("jno") long jno, @Param("id") String id);
 
     @Query( " select j.no from Journey j where j.userNo = :userNo ")
-    Optional<List<Long>> findByUserNo(@Param("userNo") Long principal);
+    Optional<List<Long>> findAllByUserNo(@Param("userNo") Long principal);
+
+    Optional<Journey> findByNo(Long no);
 }

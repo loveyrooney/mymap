@@ -1,7 +1,7 @@
 package com.mymap.mymap;
 
 import com.mymap.domain.SubwayRepository;
-import com.mymap.domain.clusters.ClustersService;
+import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.geoms.MarkerDTO;
 import com.mymap.domain.user.UserRepository;
