@@ -1,9 +1,6 @@
 package com.mymap.domain.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +14,8 @@ import lombok.NoArgsConstructor;
 @Getter
 public class User {
     @Id
-    private long no;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long no;
 
     @Column(name="user_id",nullable = false)
     private String userId;

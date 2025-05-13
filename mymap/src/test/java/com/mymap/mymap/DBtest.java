@@ -2,11 +2,14 @@ package com.mymap.mymap;
 
 import com.mymap.domain.SubwayRepository;
 import com.mymap.domain.clusters.dto.JourneyDTO;
+import com.mymap.domain.clusters.entity.Journey;
+import com.mymap.domain.clusters.service.BusFilterService;
 import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
 import com.mymap.domain.user.UserRepository;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +22,8 @@ public class DBtest {
     private UserRepository userRepository;
     @Autowired
     private ClustersService clustersService;
+    @Autowired
+    private BusFilterService busFilterService;
     @Autowired
     private SubwayRepository subwayRepository;
     @Autowired
@@ -46,5 +51,34 @@ public class DBtest {
                 .tfSub(new String[]{"홍제","서울","종각","시청"}).toSub(new String[]{"가산디지털단지"})
                         .userNo(2L).build();
         clustersService.createJourney(dto);
+    }
+
+    @Test
+    @Transactional
+    public void deleteTest() {
+        Journey journey = clustersService.findJourneyByNo(3L);
+        JourneyDTO dto = JourneyDTO.builder()
+                        .no(journey.getNo()).userNo(journey.getUserNo())
+                        .fromName(journey.getFromName()).toName(journey.getToName())
+                        .build();
+        System.out.println(dto.getNo());
+        clustersService.deleteJourney(dto.getNo());
+        geomService.deleteFromToGeoms(dto);
+        clustersService.deleteMarkerCluster(dto.getNo());
+        clustersService.deleteFilteredBus(dto.getNo());
+    }
+
+    @Test
+    @Transactional
+    public void updateTest(){
+        Journey journey = clustersService.findJourneyByNo(3L);
+        JourneyDTO dto = JourneyDTO.builder()
+                .no(journey.getNo()).userNo(journey.getUserNo())
+                .fromName(journey.getFromName()).toName("chunjae")
+                .fromBike(journey.getFromBike()).tfBike(journey.getTfBike()).toBike(new String[]{"ST-100","ST-200"})
+                .fromBus(journey.getFromBus()).tfBus(journey.getTfBus()).toBus(journey.getToBus())
+                .fromSub(journey.getFromSub()).tfSub(journey.getTfSub()).toSub(journey.getToSub())
+                .build();
+        clustersService.updateJourney(dto);
     }
 }

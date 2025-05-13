@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +34,20 @@ public class BusinessController {
         List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(journeyNo);
         clustersService.createMarkerCluster(markerClusterDTOS);
         dto.setNo(journeyNo);
-        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(dto);
-        clustersService.createFilteredBus(filteredBusDTOS);
+        if(dto.getFromBus()!=null || dto.getTfBus()!=null || dto.getToBus()!=null){
+            List<FilteredBusDTO> filteredBusDTOS = new ArrayList<>();
+            if(dto.getFromBus()!=null && dto.getTfBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,4);
+            else if(dto.getFromBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,1);
+            else if(dto.getFromBus()!=null && dto.getTfBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,2);
+            else if(dto.getTfBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,3);
+            else
+                return journeyNo;
+            clustersService.createFilteredBus(filteredBusDTOS);
+        }
         return journeyNo;
     }
 
@@ -45,8 +58,20 @@ public class BusinessController {
         clustersService.deleteFilteredBus(dto.getNo());
         List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(dto.getNo());
         clustersService.createMarkerCluster(markerClusterDTOS);
-        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(dto);
-        clustersService.createFilteredBus(filteredBusDTOS);
+        if(dto.getFromBus()!=null || dto.getTfBus()!=null || dto.getToBus()!=null){
+            List<FilteredBusDTO> filteredBusDTOS = new ArrayList<>();
+            if(dto.getFromBus()!=null && dto.getTfBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,4);
+            else if(dto.getFromBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,1);
+            else if(dto.getFromBus()!=null && dto.getTfBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,2);
+            else if(dto.getTfBus()!=null && dto.getToBus()!=null)
+                filteredBusDTOS = busFilterService.runBusFilter(dto,3);
+            else
+                return dto.getNo();
+            clustersService.createFilteredBus(filteredBusDTOS);
+        }
         return dto.getNo();
     }
 

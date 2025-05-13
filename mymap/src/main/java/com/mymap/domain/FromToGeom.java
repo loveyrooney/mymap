@@ -1,9 +1,6 @@
 package com.mymap.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,9 +17,10 @@ import org.locationtech.jts.geom.Point;
 @Getter
 public class FromToGeom {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long no;
 
-    @Column(name="userno",nullable = false)
+    @Column(name="user_no",nullable = false)
     private long userNo;
 
     private String name;

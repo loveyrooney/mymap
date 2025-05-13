@@ -633,7 +633,7 @@ class busRouteFilter {
 		List<MarkerClusterDTO> markerClusterDTOS = clustersService.abstractCluster(3L);
 		clustersService.createMarkerCluster(markerClusterDTOS);
 		for(MarkerClusterDTO dto : markerClusterDTOS){
-			System.out.println(dto.getClusterName());
+			System.out.println("cluster: "+dto.getClusterName());
 			if(dto.getClusterBus()!=null){
 				for(String s : dto.getClusterBus()){
 					System.out.printf("%s, ",s);

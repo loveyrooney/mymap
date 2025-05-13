@@ -85,13 +85,13 @@ public class ClustersServiceImpl implements ClustersService {
     @Override
     @Transactional
     public void deleteMarkerCluster(long no) {
-        markerClusterRepository.deleteAllByJno(no);
+        markerClusterRepository.deleteAllByJourneyNo(no);
     }
 
     @Override
     @Transactional
     public void deleteFilteredBus(long no) {
-        filteredBusRepository.deleteAllByJno(no);
+        filteredBusRepository.deleteAllByJourneyNo(no);
     }
 
     @Override
@@ -181,9 +181,9 @@ public class ClustersServiceImpl implements ClustersService {
     }
 
     private void putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
-        List<String> subs = List.copyOf(subKeySet);
-        List<String> buses = List.copyOf(busKeySet);
-        List<String> bikes = List.copyOf(bikeKeySet);
+        List<String> subs = new ArrayList<>(List.copyOf(subKeySet));
+        List<String> buses = new ArrayList<>(List.copyOf(busKeySet));
+        List<String> bikes = new ArrayList<>(List.copyOf(bikeKeySet));
         List<String> geom = new ArrayList<>();
         geom.add(geomTable);
         Map<String,List<String>> map = new HashMap<>();
@@ -215,11 +215,12 @@ public class ClustersServiceImpl implements ClustersService {
         } else {
             clusterInfo[1] = "from_to_geo";
         }
+        System.out.println("clusterInfo: "+clusterInfo[0]+","+clusterInfo[1]);
 //        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
 //                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
 //                .add((String)cluster[1]);
         Map<String, List<String>> innerMap = clusterKeySet.computeIfAbsent(clusterInfo[0], k -> new HashMap<>());
-        innerMap.putIfAbsent("geom_t",List.of(clusterInfo[1]));
+        innerMap.putIfAbsent("geom_t",new ArrayList<>(List.of(clusterInfo[1])));
         List<String> list = innerMap.computeIfAbsent((String) cluster[0], k -> new ArrayList<>());
         if("subway".equals(cluster[0])) {
             list.add((String) cluster[2]);

@@ -1,9 +1,6 @@
 package com.mymap.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,9 +18,10 @@ import org.locationtech.jts.geom.Point;
 @Getter
 public class Bike {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long no;
 
-    @Column(name="stationid",nullable = false)
+    @Column(name="station_id",nullable = false)
     private String stationId;
 
     @Column(columnDefinition = "geometry(Point, 4326)")

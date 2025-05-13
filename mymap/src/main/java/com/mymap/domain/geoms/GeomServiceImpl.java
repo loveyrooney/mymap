@@ -3,6 +3,7 @@ package com.mymap.domain.geoms;
 import com.mymap.domain.*;
 import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
@@ -26,6 +27,7 @@ public class GeomServiceImpl implements GeomService{
     private final BusRepository busRepository;
     private final SubwayRepository subwayRepository;
     private final BikeRepository bikeRepository;
+    private final JourneyRepository journeyRepository;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
@@ -85,7 +87,11 @@ public class GeomServiceImpl implements GeomService{
     @Override
     @Transactional
     public void deleteFromToGeoms(JourneyDTO dto) {
-        fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getFromName());
-        fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getToName());
+        int fromCount = journeyRepository.findByUserNoAndFromName(dto.getUserNo(),dto.getFromName());
+        int toCount = journeyRepository.findByUserNoAndToName(dto.getUserNo(),dto.getToName());
+        if(fromCount==0)
+            fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getFromName());
+        if(toCount==0)
+            fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getToName());
     }
 }
