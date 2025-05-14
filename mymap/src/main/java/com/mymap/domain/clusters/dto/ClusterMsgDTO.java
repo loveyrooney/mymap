@@ -15,5 +15,6 @@ public class ClusterMsgDTO {
     private Map<String, String[]> bus;
     private String[] sub;
     private String[] bike;
+    private String direction;
 
 }

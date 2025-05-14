@@ -25,6 +25,11 @@ public class BusinessController {
     private final BusFilterService busFilterService;
     private final GeomService geomService;
 
+    @GetMapping("/crawling")
+    public List<String> crawling(){
+        return Crawling.crawlSelenium();
+    }
+
     @PostMapping("/journey")
     public long registerJourney(@RequestBody JourneyDTO dto){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -104,14 +109,14 @@ public class BusinessController {
     }
 
     @PostMapping("/map_msg")
-    public Map<String, ClusterMsgDTO> map_msg(@RequestBody Map<String,Long> body){
+    public Map<String, ClusterMsgDTO> map_msg(@RequestBody Map<String,String> body){
         System.out.println("jno: "+body.get("jno"));
-        long jno = body.get("jno");
+        long jno = Long.parseLong(body.get("jno"));
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("map: "+auth.getPrincipal());
         List<MarkerClusterDTO> clusterList = clustersService.findMarkerClusterByJno(jno);
         // map 페이지에서 fetch 요청을 받는 곳. 실시간 조회를 위한 클라이언트의 msg list 를 보내야함
-        return clustersService.convertToClusterMsg(clusterList);
+        return clustersService.convertToClusterMsg(clusterList,jno,(String)body.get("direction"));
     }
 
 }

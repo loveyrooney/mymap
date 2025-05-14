@@ -287,7 +287,7 @@ public class ClustersServiceImpl implements ClustersService {
     }
 
     @Override
-    public Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList) {
+    public Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList, long jno, String direction) {
         Map<String,ClusterMsgDTO> map = new HashMap<>();
         for(MarkerClusterDTO dto : clusterList){
             ClusterMsgDTO msg = new ClusterMsgDTO();
@@ -295,14 +295,16 @@ public class ClustersServiceImpl implements ClustersService {
             if(dto.getClusterBus()!=null){
                 Map<String,String[]> busMap = new HashMap<>();
                 for(String arsid : dto.getClusterBus()){
-                    FilteredBus filteredBus = filteredBusRepository.findByArsIdAndClusterName(arsid,dto.getClusterName())
+                    FilteredBus filteredBus = filteredBusRepository.findByJnoAndArsIdAndClusterName(jno,arsid,dto.getClusterName())
                             .orElseThrow(()-> new BusinessException(ErrorCode.NOT_EXIST));
                     busMap.putIfAbsent(arsid, filteredBus.getRoutes());
                 }
                 msg.setBus(busMap);
             }
-            if(dto.getClusterSub()!=null)
+            if(dto.getClusterSub()!=null){
                 msg.setSub(dto.getClusterSub());
+                msg.setDirection(direction);
+            }
             if(dto.getClusterBike()!=null)
                 msg.setBike(dto.getClusterBike());
             map.putIfAbsent(dto.getClusterName(),msg);

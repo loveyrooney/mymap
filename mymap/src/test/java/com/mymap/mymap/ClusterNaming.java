@@ -191,7 +191,7 @@ public class ClusterNaming {
 
     @Test
     public void runBusFilterTest(){
-        Journey journey = clustersService.findJourneyByNo(3L);
+        Journey journey = clustersService.findJourneyByNo(1L);
         JourneyDTO jdto = JourneyDTO.builder()
                 .no(journey.getNo()).userNo(journey.getUserNo())
                 .fromName(journey.getFromName()).toName(journey.getToName())
@@ -199,8 +199,8 @@ public class ClusterNaming {
                 .fromSub(journey.getFromSub()).tfSub(journey.getTfSub()).toSub(journey.getToSub())
                 .fromBike(journey.getFromBike()).tfBike(journey.getTfBike()).toBike(journey.getToBike())
                 .build();
-        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(jdto,2);
-        //clustersService.createFilteredBus(filteredBusDTOS);
+        List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(jdto,4);
+        clustersService.createFilteredBus(filteredBusDTOS);
         for(FilteredBusDTO dto : filteredBusDTOS){
             System.out.println(dto.getClusterName()+":"+dto.getArsId());
             if(dto.getRoutes()!=null){

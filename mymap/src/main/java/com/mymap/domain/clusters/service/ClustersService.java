@@ -20,7 +20,7 @@ public interface ClustersService {
     Journey findJourneyByNo(Long journeyNo);
     List<FilteredBusDTO> findFilterBusByJno(long jno);
     List<MarkerClusterDTO> findMarkerClusterByJno(long jno);
-    Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList);
+    Map<String,ClusterMsgDTO> convertToClusterMsg(List<MarkerClusterDTO> clusterList, long jno, String direction);
     void updateJourney(JourneyDTO dto);
     void deleteMarkerCluster(long no);
     void deleteFilteredBus(long no);

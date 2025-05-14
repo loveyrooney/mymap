@@ -37,7 +37,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
 	implementation 'org.json:json:20160810'
-	implementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
+	implementation 'org.seleniumhq.selenium:selenium-java:4.22.0'
 	implementation 'io.github.bonigarcia:webdrivermanager:6.0.1'
 	implementation 'org.hibernate:hibernate-spatial:6.5.3.Final'
 	implementation 'org.locationtech.jts:jts-core:1.18.2'

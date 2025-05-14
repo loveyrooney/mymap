@@ -1,6 +1,5 @@
-package com.mymap;
+package com.mymap.controller;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -21,8 +20,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Crolling {
-    public static void crollJsoup() {
+public class Crawling {
+    public static void crawlJsoup() {
         try {
             // 크롤링할 웹 페이지 URL
             String url = "https://topis.seoul.go.kr/notice/openNoticeList.do"; // 실제 URL로 변경
@@ -50,7 +49,7 @@ public class Crolling {
         }
     }
 
-    public static void crollSelenium() {
+    public static List<String> crawlSelenium() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");  // 헤드리스 모드로 실행
 
@@ -62,10 +61,11 @@ public class Crolling {
                         .stream()
                         .map(element -> element.getText())
                         .collect(Collectors.toList());
-        for(String h : hrefs){
-            System.out.println(h);
-        }
+//        for(String h : hrefs){
+//            System.out.println(h);
+//        }
         driver.quit();
+        return hrefs;
     }
 
     public static void callApi() {

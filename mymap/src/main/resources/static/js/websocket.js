@@ -11,7 +11,10 @@ window.onload = await function () {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body : JSON.stringify({ jno : window.location.pathname.split("/")[3] })
+                body : JSON.stringify({
+                    jno : window.location.pathname.split("/")[3],
+                    direction : new URLSearchParams(window.location.search).get("direction")
+                })
             });
             if (response.status === 401) {
                 const res = await fetch("/auth/refresh", {
@@ -59,6 +62,32 @@ window.onload = await function () {
         dataSet = removeNulls(data);
         if(dataSet==undefined)
             throw new Error("web authentication failed");
+        fetch("/api/crawling",{
+            method: "GET",
+            credentials: "include",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem("token")}`,
+            },
+            //body : JSON.stringify({ jno : window.location.pathname.split("/")[3] })
+        }).then(response=>{
+//            if(response.status == 401) {
+//                fetch("/api/refresh", {
+//                    method: 'POST',
+//                    credentials: 'include'
+//                }).then(res=>{
+//                    if(!res.ok) throw new Error("refresh failed");
+//                    return res.json();
+//                }).then(d=>{
+//                    console.log("refresh:",d);
+//                }).catch(e=>console.log(e));
+//            }
+            if(!response.ok) throw Error("crawling call failed");
+            return response.json();
+        }).then(data=>{
+            console.log(data);
+        }).catch(e=> console.log(e));
     })
     .then(()=>{
         // 사용자가 들어오면 웹소켓 객체 생성
