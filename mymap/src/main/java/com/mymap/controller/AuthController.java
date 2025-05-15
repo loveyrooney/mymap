@@ -4,10 +4,7 @@ import com.mymap.auth.JwtProvider;
 import com.mymap.domain.user.UserDTO;
 import com.mymap.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 

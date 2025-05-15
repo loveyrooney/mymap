@@ -54,6 +54,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteToken(long userNo) {
-        refreshTokenRepository.deleteByUserNo(userNo);
+        refreshTokenRepository.deleteAllByUserNo(userNo);
     }
 }
