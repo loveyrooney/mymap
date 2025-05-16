@@ -96,16 +96,14 @@ public class BusinessController {
         return clustersService.findJourneyAllByUserNo((Long)auth.getPrincipal());
     }
 
-    @PostMapping("/map_geom")
-    public List<MarkerDTO> map_geom(@RequestBody Map<String,Long> body){
-        System.out.println("jno: "+body.get("jno"));
-        long jno = body.get("jno");
+    @GetMapping("/map_geom/{jno}")
+    public List<MarkerDTO> map_geom(@PathVariable long jno){
         // map 페이지에서 fetch 요청을 받는 곳. 마커들의 geometry 정보를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("map: "+auth.getPrincipal());
         List<MarkerClusterDTO> clusters = clustersService.findMarkerClusterByJno(jno);
         // 지금은 클러스터 좌표만 보내주고 있는데 각각의 정류장 좌표도 보내줘야 함.
-        return geomService.findGeoms(clusters,(Long)auth.getPrincipal());
+        return geomService.findGeoms(clusters,(Long)auth.getPrincipal(),jno);
     }
 
     @PostMapping("/map_msg")

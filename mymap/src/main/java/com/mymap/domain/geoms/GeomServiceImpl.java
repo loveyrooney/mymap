@@ -3,11 +3,13 @@ package com.mymap.domain.geoms;
 import com.mymap.domain.*;
 import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.entity.Journey;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.Marker;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -31,34 +33,48 @@ public class GeomServiceImpl implements GeomService{
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
-    public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth) {
+    public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth, long jno) {
+        Journey journey = journeyRepository.findByNo(jno)
+                .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
         List<MarkerDTO> markers = new ArrayList<>();
         for(MarkerClusterDTO dto : clusters){
-            MarkerDTO m;
+            MarkerDTO mdto = new MarkerDTO();
+            mdto.setClusterName(dto.getClusterName());
             if("from_to_geo".equals(dto.getGeomTable())){
-                m = fromToGeomRepository.findByUserNoAndName(auth,dto.getClusterName())
+                FromToGeom fromToGeom = fromToGeomRepository.findByUserNoAndName(auth,dto.getClusterName())
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
+                if(dto.getClusterName().equals(journey.getFromName()))
+                    mdto.setGroup("dp");
+                else
+                    mdto.setGroup("ar");
+                mdto.setLon(String.valueOf(fromToGeom.getGeom().getX()));
+                mdto.setLat(String.valueOf(fromToGeom.getGeom().getY()));
             } else if("subway".equals(dto.getGeomTable())){
                 Pageable page = PageRequest.of(0, 1, Sort.by("no").ascending());
-                Object[] subs = subwayRepository.findByStName(dto.getClusterName(),page)
+                Subway subs = subwayRepository.findByStName(dto.getClusterName(),page)
                         .getContent().stream().findFirst()
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m = MarkerDTO.builder()
-                        .clusterName((String)subs[0])
-                        .stName((String)subs[1])
-                        .geom((String)subs[2].toString())
-                        .build();
+                mdto.setGroup("tf");
+                mdto.setLon(String.valueOf(subs.getGeom().getX()));
+                mdto.setLat(String.valueOf(subs.getGeom().getY()));
+                mdto.setStid(subs.getSubwayId());
             } else if("bus".equals(dto.getGeomTable()) || "buses".equals(dto.getGeomTable())){
-                m = busRepository.findByArsId(dto.getClusterBus()[0])
+                Bus bus = busRepository.findByArsId(dto.getClusterBus()[0])
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m.setClusterName(dto.getClusterName());
+                mdto.setGroup("tf");
+                mdto.setLon(String.valueOf(bus.getGeom().getX()));
+                mdto.setLat(String.valueOf(bus.getGeom().getY()));
+                mdto.setStid(bus.getArsId());
             } else if("bike".equals(dto.getGeomTable()) || "bikes".equals(dto.getGeomTable())){
-                m = bikeRepository.findByStId(dto.getClusterBike()[0])
+                Bike bike = bikeRepository.findByStId(dto.getClusterBike()[0])
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                m.setClusterName(dto.getClusterName());
+                mdto.setGroup("tf");
+                mdto.setLon(String.valueOf(bike.getGeom().getX()));
+                mdto.setLat(String.valueOf(bike.getGeom().getY()));
+                mdto.setStid(bike.getStationId());
             } else
                 throw new BusinessException(ErrorCode.NOT_EXIST);
-            markers.add(m);
+            markers.add(mdto);
         }
         return markers;
     }
@@ -66,8 +82,8 @@ public class GeomServiceImpl implements GeomService{
     @Override
     @Transactional
     public void createFromToGeoms(JourneyDTO journey) {
-        MarkerDTO fromGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getFromName()).orElse(null);
-        MarkerDTO toGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getToName()).orElse(null);
+        FromToGeom fromGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getFromName()).orElse(null);
+        FromToGeom toGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getToName()).orElse(null);
         if(fromGeom==null){
             Point fromPoint = geometryFactory.createPoint(new Coordinate(journey.getFromGeoms()[0],journey.getFromGeoms()[1]));
             FromToGeom entity = FromToGeom.builder()

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log("실행후",data);
         dataSet = removeNulls(data);
         if(dataSet==undefined)
-            throw new Error("web authentication failed");
+            throw new Error("dataSet failed");
         fetch("/api/crawling",{
             method: "GET",
             credentials: "include",
@@ -68,21 +68,22 @@ async function fetchData(){
                  direction : new URLSearchParams(window.location.search).get("direction")
             })
         });
-        if (response.status === 401) {
-            const res = await fetch("/auth/refresh", {
-                method: 'POST',
-                credentials: 'include'
-            });
-            if (!res.ok) {
-                let error = await res.text();
-                console.log(error);
-                throw new Error("refresh call error: " + res.status);
-            }
-            const refreshData = await res.json();
-            console.log("두번째",refreshData);
-            sessionStorage.setItem("token",refreshData.accessToken);
-            return refreshData;
-        }
+//        if (response.status === 401) {
+//            const res = await fetch("/auth/refresh", {
+//                method: 'POST',
+//                credentials: 'include'
+//            });
+//            if (!res.ok) {
+//                let error = await res.text();
+//                console.log(error);
+//                throw new Error("refresh call error: " + res.status);
+//            }
+//            const refreshData = await res.json();
+//            console.log("두번째",refreshData);
+//            sessionStorage.setItem("token",refreshData.accessToken);
+//            return refreshData;
+//        }
+        if(!response.ok) throw Error("map_msg call failed");
         const data = await response.json();
         //const jsonStr = JSON.stringify(data);
         //const sizeInBytes = new TextEncoder().encode(jsonStr).length;

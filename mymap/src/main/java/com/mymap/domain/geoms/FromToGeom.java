@@ -1,4 +1,4 @@
-package com.mymap.domain;
+package com.mymap.domain.geoms;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

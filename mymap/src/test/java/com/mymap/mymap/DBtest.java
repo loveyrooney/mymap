@@ -34,10 +34,10 @@ public class DBtest {
 //        Optional<User> rooney = userRepository.findByUserId("rooney");
 //        System.out.println(rooney.get().getPassword());
         List<MarkerClusterDTO> lists = clustersService.findMarkerClusterByJno(1L);
-        List<MarkerDTO> geoms = geomService.findGeoms(lists, 2L);
-        for(MarkerDTO dto : geoms) {
-            System.out.println(dto.getClusterName() + dto.getStName() + dto.getGeom());
-        }
+        List<MarkerDTO> geoms = geomService.findGeoms(lists, 1L);
+//        for(MarkerDTO dto : geoms) {
+//            System.out.println(dto.getClusterName() + dto.getStName() );
+//        }
 //        Pageable page = PageRequest.of(0, 1, Sort.by("no").ascending());
 //        List<MarkerDTO> m = subwayRepository.findByStName("서울",page);
 //        System.out.println(m.get(0).getGeom());

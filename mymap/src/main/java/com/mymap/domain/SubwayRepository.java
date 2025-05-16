@@ -1,6 +1,5 @@
 package com.mymap.domain;
 
-import com.mymap.domain.geoms.MarkerDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +12,7 @@ public interface SubwayRepository extends JpaRepository<Subway,Long> {
     @Query(value = "SELECT * FROM cluster_grouping(:jno)", nativeQuery = true)
     List<Object[]> getClusterGrouping(@Param("jno") Long jno);
 
-    @Query(" select :clusterName, s.stationName, s.geom from Subway s where s.stationName = :clusterName ")
-    Page<Object[]> findByStName(@Param("clusterName") String clusterName, Pageable pageable);
+    @Query(" select s from Subway s where s.stationName = :clusterName ")
+    Page<Subway> findByStName(@Param("clusterName") String clusterName, Pageable pageable);
 }
 

@@ -10,19 +10,9 @@ import org.locationtech.jts.geom.Point;
 @Builder
 public class MarkerDTO {
     private String clusterName;
-    private String stName;
+    private String group;
     private String geom;
     private String stid;
-
-    MarkerDTO(String stName, Point geom, String id){
-        this.stName = stName;
-        this.geom =geom.toText();
-        this.stid = id;
-    }
-
-    MarkerDTO(String clusterName, String stName, Point geom){
-        this.clusterName = clusterName;
-        this.stName = stName;
-        this.geom =geom.toText();
-    }
+    private String lon;
+    private String lat;
 }

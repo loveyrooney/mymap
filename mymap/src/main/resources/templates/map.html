@@ -1,20 +1,35 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.springframework.org/schema/security">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<div class="wrap">
-    <h3 id="crawling_data"></h3>
-    <button type="button" id="house">집</button>
-    <div id="map_wrap">
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{/include/layout}"
+>
+  <div layout:fragment="content">
+    <div class="wrap">
+      <h3 id="crawling_data">this is crawling data section</h3>
+      <div class="util">
+        <button type="button" id="house">집</button>
+      </div>
+      <div id="call_board_wrap" class="hidden">
+        <h3 id="cluster_tit"></h3>
+        <div class="call_vehicles">
+          <button type="button">버스/따릉이</button>
+          <button type="button">지하철</button>
+        </div>
+        <div id="call_bus_bike" class="call_bus_bike"></div>
+        <div id="call_sub" class="hidden"></div>
+      </div>
+      <div id="map_wrap">
         <div id="map"></div>
+      </div>
     </div>
-</div>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"></script>
-<script type="module" th:src="@{/js/map.js}"></script>
-<script type="module" th:src="@{/js/websocket.js}"></script>
-</body>
+    <script
+      type="text/javascript"
+      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
+    ></script>
+    <script type="module" th:src="@{/js/map.js}"></script>
+    <!--    <script type="module" th:src="@{/js/websocket.js}"></script>-->
+  </div>
 </html>
