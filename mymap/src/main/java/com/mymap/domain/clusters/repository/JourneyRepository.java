@@ -1,5 +1,6 @@
 package com.mymap.domain.clusters.repository;
 
+import com.mymap.domain.clusters.dto.JourneyDTO;
 import com.mymap.domain.clusters.entity.Journey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -42,8 +43,8 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
             " or :id = any(j.to_bike))", nativeQuery = true)
     String containsWhereBike(@Param("jno") long jno, @Param("id") String id);
 
-    @Query( " select j.no from Journey j where j.userNo = :userNo ")
-    Optional<List<Long>> findAllByUserNo(@Param("userNo") Long principal);
+    @Query( " select new com.mymap.domain.clusters.dto.JourneyDTO(j.no, j.fromName, j.toName) from Journey j where j.userNo = :userNo ")
+    Optional<List<JourneyDTO>> findAllByUserNo(@Param("userNo") Long principal);
 
     Optional<Journey> findByNo(Long no);
 

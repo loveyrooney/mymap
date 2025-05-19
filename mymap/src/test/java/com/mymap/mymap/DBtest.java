@@ -9,6 +9,7 @@ import com.mymap.domain.clusters.dto.MarkerClusterDTO;
 import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
 import com.mymap.domain.user.UserRepository;
+import com.mymap.domain.user.UserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +29,15 @@ public class DBtest {
     private SubwayRepository subwayRepository;
     @Autowired
     private GeomService geomService;
+    @Autowired
+    private UserService userService;
 
     @Test
     public void test(){
 //        Optional<User> rooney = userRepository.findByUserId("rooney");
 //        System.out.println(rooney.get().getPassword());
-        List<MarkerClusterDTO> lists = clustersService.findMarkerClusterByJno(1L);
-        List<MarkerDTO> geoms = geomService.findGeoms(lists, 1L);
+        //List<MarkerClusterDTO> lists = clustersService.findMarkerClusterByJno(1L);
+        //List<MarkerDTO> geoms = geomService.findGeoms(lists, 1L);
 //        for(MarkerDTO dto : geoms) {
 //            System.out.println(dto.getClusterName() + dto.getStName() );
 //        }
@@ -80,5 +83,10 @@ public class DBtest {
                 .fromSub(journey.getFromSub()).tfSub(journey.getTfSub()).toSub(journey.getToSub())
                 .build();
         clustersService.updateJourney(dto);
+    }
+
+    @Test
+    public void refreshTest(){
+        userService.deleteToken(2);
     }
 }

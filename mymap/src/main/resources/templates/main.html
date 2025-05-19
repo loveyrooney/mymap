@@ -1,25 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>hello, mymap main!</h1>
-<a href="/view/map/1?direction=하행">집->회사</a>
-<button type="button" id="logout">logout</button>
-<script type="module">
-document.querySelector("#logout").addEventListener("click",()=>{
-    fetch('/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-    })
-    .then(() => {
-        console.log("로그아웃 완료");
-        sessionStorage.removeItem("token");
-    })
-    .catch(e=> console.log("로그아웃 실패",e));
-});
-</script>
-</body>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{/include/layout}"
+>
+  <div layout:fragment="content">
+    <h1>hello, mymap main!</h1>
+    <div id="route_pick">
+      <select id="journeys" name="journey"></select>
+      <div class="flex_evenly">
+        <button type="button" class="go_map">출근</button>
+        <button type="button" class="go_map">퇴근</button>
+      </div>
+    </div>
+    <!--    <a href="/view/map/1?direction=하행">집->회사</a>-->
+    <button type="button" id="logout">logout</button>
+  </div>
+  <th:block layout:fragment="script">
+    <script type="module">
+      //journeys call
+      const select = document.querySelector("#journeys");
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+          const response = await fetch("/api/journeys", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
+          });
+
+          const data = await response.json();
+          if (response.status != 200) throw new Error(data.msg);
+          data.forEach((d) => {
+            let op = document.createElement("option");
+            op.setAttribute("value", d.no);
+            op.textContent = `${d.fromName}->${d.toName}`;
+            select.appendChild(op);
+          });
+        } catch (e) {
+          console.log(e);
+        }
+      });
+
+      //move to target route
+      document.querySelectorAll(".go_map").forEach((el) => {
+        el.addEventListener("click", () => {
+          window.location.href = `/view/map/${select.value}`;
+        });
+      });
+
+      // logout
+      document.querySelector("#logout").addEventListener("click", () => {
+        fetch("/auth/logout", {
+          method: "GET",
+          credentials: "include",
+        })
+          .then(() => {
+            console.log("로그아웃 완료");
+            sessionStorage.removeItem("token");
+          })
+          .catch((e) => console.log("로그아웃 실패", e));
+      });
+    </script>
+  </th:block>
 </html>

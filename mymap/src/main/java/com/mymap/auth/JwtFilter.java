@@ -53,7 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 // 선택적으로 content-type도 지정
                 response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                response.getWriter().write("{\"error\":\"Access Token Unauthorized\"}");
                 return;
             }
         }

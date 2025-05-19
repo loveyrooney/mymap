@@ -12,14 +12,28 @@
       <div class="util">
         <button type="button" id="house">집</button>
       </div>
-      <div id="call_board_wrap" class="hidden">
-        <h3 id="cluster_tit"></h3>
-        <div class="call_vehicles">
-          <button type="button">버스/따릉이</button>
-          <button type="button">지하철</button>
+      <div id="call_wrap_overlay" class="hidden">
+        <div id="call_board_wrap" class="call_wrap">
+          <h3 id="cluster_tit"></h3>
+          <div class="call_vehicles flex_evenly">
+            <button type="button" id="bBtn">버스/따릉이</button>
+            <button type="button" id="sBtn">지하철</button>
+          </div>
+          <div id="call_bus_bike" class="call_bus_bike">
+            <ul id="bus_bike_list"></ul>
+          </div>
+          <div id="call_sub" class="hidden">
+            <ul id="sub_list">
+              <li>
+                <span>trainLineNm (btrainSttus)</span>
+                <div>
+                  <span>arvlMsg2</span>
+                  <span>arvlMsg3</span>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div id="call_bus_bike" class="call_bus_bike"></div>
-        <div id="call_sub" class="hidden"></div>
       </div>
       <div id="map_wrap">
         <div id="map"></div>
@@ -30,6 +44,6 @@
       src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
     ></script>
     <script type="module" th:src="@{/js/map.js}"></script>
-    <!--    <script type="module" th:src="@{/js/websocket.js}"></script>-->
+    <script type="module" th:src="@{/js/websocket.js}"></script>
   </div>
 </html>

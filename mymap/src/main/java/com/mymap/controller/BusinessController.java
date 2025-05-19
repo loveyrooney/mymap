@@ -89,7 +89,7 @@ public class BusinessController {
     }
 
     @GetMapping("/journeys")
-    public List<Long> journeys(){
+    public List<JourneyDTO> journeys(){
         // main 페이지에서 fetch 요청을 받는 곳. 해당 유저의 journey list 를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("main: "+auth.getPrincipal());

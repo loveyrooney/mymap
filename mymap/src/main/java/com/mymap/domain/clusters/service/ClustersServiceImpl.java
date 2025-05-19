@@ -38,7 +38,7 @@ public class ClustersServiceImpl implements ClustersService {
     @Transactional
     public long createJourney(JourneyDTO dto) {
         Journey entity = Journey.builder()
-                .userNo(dto.getUserNo()).fromName(dto.getFromName()).toName(dto.getToName()).fromBus(dto.getFromBus()).tfBus(dto.getTfBus()).toBus(dto.getToBus()).fromSub(dto.getFromSub()).tfSub(dto.getTfSub()).toSub(dto.getToSub()).fromBike(dto.getFromBike()).tfBike(dto.getTfBike()).toBike(dto.getToBike())
+                .userNo(dto.getUserNo()).fromName(dto.getFromName()).toName(dto.getToName()).fromBus(dto.getFromBus()).tfBus(dto.getTfBus()).toBus(dto.getToBus()).fromSub(dto.getFromSub()).tfSub(dto.getTfSub()).toSub(dto.getToSub()).fromBike(dto.getFromBike()).tfBike(dto.getTfBike()).toBike(dto.getToBike()).direction(dto.getDirection())
                 .build();
         Journey save = journeyRepository.save(entity);
         return save.getNo();
@@ -247,7 +247,7 @@ public class ClustersServiceImpl implements ClustersService {
     }
 
     @Override
-    public List<Long> findJourneyAllByUserNo(Long principal) {
+    public List<JourneyDTO> findJourneyAllByUserNo(Long principal) {
         return journeyRepository.findAllByUserNo(principal)
                 .orElseThrow(()->new BusinessException(ErrorCode.NOT_REGISTERED));
     }

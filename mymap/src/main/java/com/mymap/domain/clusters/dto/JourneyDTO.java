@@ -27,5 +27,12 @@ public class JourneyDTO {
     private String[] fromBike;
     private String[] tfBike;
     private String[] toBike;
+    private String direction;
+
+    JourneyDTO(long no, String fromName, String toName){
+        this.no = no;
+        this.fromName = fromName;
+        this.toName = toName;
+    }
 
 }

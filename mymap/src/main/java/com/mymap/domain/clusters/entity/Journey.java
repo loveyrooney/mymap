@@ -50,4 +50,6 @@ public class Journey {
     @Column(name="to_bike")
     private String[] toBike;
 
+    private String direction;
+
 }

@@ -1,41 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Title</title>
-</head>
-<body>
-<h1>hello, mymap!</h1>
-<form>
-    <input type="text" name="userId" placeholder="id">
-    <input type="text" name="password" placeholder="pw">
-    <button type="button" id="login">로그인</button>
-</form>
-<script type="module">
-    const form = document.querySelector("form");
-    document.querySelector("#login").addEventListener("click",()=>{
-        console.log(form.userId);
-        fetch("/auth/login",{
-            method : "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body : JSON.stringify({ userId : form.userId.value, password : form.password.value})
-        }).then(res=>{
-             if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
-             return res.json();
-        }).then(r=>{
-            console.log(r);
-            sessionStorage.setItem("token",r.accessToken);
-            if(sessionStorage.getItem("token")){
-                console.log(sessionStorage.getItem("token"));
-                window.location.href = "/view/main";
+  </head>
+  <body>
+    <h1>hello, mymap!</h1>
+    <form>
+      <input type="text" name="userId" placeholder="id" required />
+      <input type="text" name="password" placeholder="pw" required />
+      <button type="button" id="login">로그인</button>
+    </form>
+    <script type="module">
+      const form = document.querySelector("form");
+      document
+        .querySelector("#login")
+        .addEventListener("click", async function () {
+          try {
+            const response = await fetch("/auth/login", {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId: form.userId.value,
+                password: form.password.value,
+              }),
+            });
+
+            const data = await response.json();
+            if (response.status !== 200) throw new Error(data.msg);
+            sessionStorage.setItem("token", data.accessToken);
+            if (sessionStorage.getItem("token")) {
+              console.log(sessionStorage.getItem("token"));
+              window.location.href = "/view/main";
             }
-        }).catch(error=>{
-            console.log("error: ",error);
+          } catch (e) {
+            console.log(e);
+          }
         });
-    });
-</script>
-</body>
+    </script>
+  </body>
 </html>
