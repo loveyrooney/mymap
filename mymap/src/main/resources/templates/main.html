@@ -7,16 +7,22 @@
   layout:decorate="~{/include/layout}"
 >
   <div layout:fragment="content">
-    <h1>hello, mymap main!</h1>
+    <div class="flex_between main_tit">
+      <h1>hello, mymap main!</h1>
+      <button type="button" id="logout">logout</button>
+    </div>
     <div id="route_pick">
+      <div class="flex_between">
+        <button type="button" class="go_edit" id="go_create">경로생성</button>
+        <button type="button" class="go_edit" id="go_edit">수정/삭제</button>
+      </div>
       <select id="journeys" name="journey"></select>
-      <div class="flex_evenly">
-        <button type="button" class="go_map">출근</button>
-        <button type="button" class="go_map">퇴근</button>
+      <div class="flex_center">
+        <button type="button" class="go_map">출근🫠</button>
+        <button type="button" class="go_map">퇴근😍</button>
       </div>
     </div>
     <!--    <a href="/view/map/1?direction=하행">집->회사</a>-->
-    <button type="button" id="logout">logout</button>
   </div>
   <th:block layout:fragment="script">
     <script type="module">
@@ -52,6 +58,14 @@
         el.addEventListener("click", () => {
           window.location.href = `/view/map/${select.value}`;
         });
+      });
+
+      //move to route edit
+      document.querySelector("#go_edit").addEventListener("click", () => {
+        window.location.href = `/view/edit/${select.value}`;
+      });
+      document.querySelector("#go_create").addEventListener("click", () => {
+        window.location.href = `/view/create`;
       });
 
       // logout

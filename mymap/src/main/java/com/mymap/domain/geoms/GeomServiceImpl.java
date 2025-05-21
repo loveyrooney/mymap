@@ -33,6 +33,31 @@ public class GeomServiceImpl implements GeomService{
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
+    public List<TransferDTO> findTransfers(TransferReqDTO dto) {
+        List<Object[]> list = new ArrayList<>();
+        if("Bus".equals(dto.getVehicle())){
+            list = busRepository.getNearGeoms(dto.getLon(),dto.getLat())
+                    .orElseThrow(()->new BusinessException(ErrorCode.DO_NOT_WORK));
+        } else if("Sub".equals(dto.getVehicle())){
+            list = subwayRepository.getNearGeoms(dto.getLon(),dto.getLat())
+                    .orElseThrow(()->new BusinessException(ErrorCode.DO_NOT_WORK));
+        } else if("Bike".equals(dto.getVehicle())){
+            list = bikeRepository.getNearGeoms(dto.getLon(),dto.getLat())
+                    .orElseThrow(()->new BusinessException(ErrorCode.DO_NOT_WORK));
+        }
+        return mappingTransfer(list);
+    }
+
+    private List<TransferDTO> mappingTransfer(List<Object[]> list){
+        List<TransferDTO> resultList = new ArrayList<>();
+        for(Object[] o : list){
+            TransferDTO d = TransferDTO.builder().tfId((String)o[0]).stName((String)o[1]).build();
+            resultList.add(d);
+        }
+        return resultList;
+    }
+
+    @Override
     public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth, long jno) {
         Journey journey = journeyRepository.findByNo(jno)
                 .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));

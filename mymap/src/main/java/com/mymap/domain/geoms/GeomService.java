@@ -10,4 +10,5 @@ public interface GeomService {
     List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth, long jno);
     void createFromToGeoms(JourneyDTO journey);
     void deleteFromToGeoms(JourneyDTO dto);
+    List<TransferDTO> findTransfers(TransferReqDTO dto);
 }

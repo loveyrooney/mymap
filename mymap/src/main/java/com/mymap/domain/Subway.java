@@ -29,4 +29,7 @@ public class Subway {
 
     @Column(name="station_name",nullable = false)
     private String stationName;
+
+    @Column(name="route_name")
+    private String routeName;
 }

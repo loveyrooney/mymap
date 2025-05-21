@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{/include/layout}"
+>
+  <div layout:fragment="content"></div>
+  <th:block layout:fragment="script">
+    <script
+      type="text/javascript"
+      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
+    ></script>
+    <script type="module"></script>
+  </th:block>
+</html>

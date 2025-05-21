@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{/include/layout}"
+>
+  <div layout:fragment="content">
+    <div class="wrap">
+      <div id="search_wrap" class="util">
+        <input type="text" id="addr" placeholder="주소를 입력하세요" />
+        <button type="button" id="searchBtn">검색</button>
+      </div>
+      <div id="regi_wrap" class="regi_wrap">
+        <div class="flex_between">
+          <div class="categ_box">
+            <select id="categ_select" required>
+              <option value="fromName">출발지</option>
+              <option value="toName">도착지</option>
+              <option value="Bus">버스</option>
+              <option value="Sub">지하철</option>
+              <option value="Bike">따릉이</option>
+            </select>
+            <button type="button" id="categ_choose">선택</button>
+          </div>
+          <button type="button" id="registerBtn">경로최종등록</button>
+        </div>
+        <div id="from_to_box" class="hidden">
+          <input
+            type="text"
+            placeholder="출발지/도착지 이름"
+            id="fromTo_input"
+            required
+          />
+          <button type="button" id="fromTo_regi_btn">등록</button>
+        </div>
+        <div id="transfer_box" class="hidden">
+          <select id="tf_select"></select>
+          <select id="depth_select">
+            <option value="from">출발역</option>
+            <option value="tf">환승역</option>
+            <option value="to">도착역</option>
+          </select>
+          <button type="button" id="tf_regi_btn">등록</button>
+        </div>
+      </div>
+      <div id="map_wrap">
+        <div id="map"></div>
+      </div>
+    </div>
+  </div>
+  <th:block layout:fragment="script">
+    <script
+      type="text/javascript"
+      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
+    ></script>
+    <script type="module" th:src="@{/js/map.js}"></script>
+  </th:block>
+</html>

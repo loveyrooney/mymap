@@ -21,6 +21,7 @@
   right: 0;
   z-index: 500;
   padding: 15px;
+  display: flex;
 }
 
 #crawling_data {
@@ -29,6 +30,10 @@
   z-index: 500;
   left: 15px;
   margin: 15px 0 15px 0;
+  padding: 10px;
+  background-color: #ffffffab;
+  border-radius: 5px;
+  font-weight: 500;
 }
 
 .infoBox {
@@ -36,9 +41,22 @@
   flex-direction: column;
   justify-content: center;
   align-items: end;
+  background-color: #ffffffb3;
+  padding: 5px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.1);
 }
 
-// 호출 토스트 팝업
+.badges span {
+  margin-right: 5px;
+  font-size: 0.5rem;
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 0 5px;
+  font-weight: 300;
+}
+
+/* 호출 토스트 팝업 */
 
 .call_overlay {
   width: 100vw;
@@ -59,18 +77,25 @@
   box-shadow: 0 0 12px 10px rgba(0, 0, 0, 0.1);
 }
 
+#call_wrap_close {
+  margin: 10px;
+  padding: 5px;
+}
+
+.call_wrap_tit {
+  margin: 0 15px 0 15px;
+}
+
 #cluster_tit {
-  position: relative;
-  top: 0;
-  z-index: 500;
-  left: 25px;
   display: block;
-  width: 100vw;
-  margin-top: 15px;
+  width: 75vw;
+  margin: 10px;
 }
 
 .call_vehicles {
   margin: 10px;
+  position: relative;
+  z-index: 501;
 }
 
 .call_vehicles button {
@@ -118,5 +143,28 @@
 }
 
 .s_route_box {
-  width: 150px;
+  width: 35vw;
+  border: 2px solid #0056ff;
+  border-radius: 10px;
+  background-color: #0056ff;
+  color: white;
+  padding: 5px;
+}
+
+.s_route_content {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bike_tit {
+  width: 60vw;
+  background-color: #31dc76;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.bike_content {
+  width: 10vw;
 }

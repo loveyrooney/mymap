@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],  # 모든 헤더 허용
 )
 
-SESSION_TIMEOUT = 60 # 60 * 20  # seconds
+SESSION_TIMEOUT = 60 * 5 # 60 * 20  # seconds
 
 def verify_jwt(token: str):
     jwt_key = os.getenv("JWT_KEY")
@@ -54,18 +54,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         # data 중 중복 arsid 요청이 있으면 캐시에서 가져오는 구조로 만들어야 됨. 그렇지 않으면 call_bus 실행
                         result_call_bus = await call_bus(k,set(v))
                         print(f"콜버스 결과: {result_call_bus}, , 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({'bus':result_call_bus})
+                        await websocket.send_json({'bus':result_call_bus, 'clusterName':data['clusterName']})
                 if "sub" in data:        
                     for k in data['sub']:
                         result_call_sub = await call_subway(k)
                         print(f"콜섭 결과: {result_call_sub}, 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({'sub':result_call_sub})
+                        await websocket.send_json({'sub':result_call_sub, 'clusterName':data['clusterName']})
                 if "bike" in data:
                     print("here")        
                     for k in data['bike']:
                         result_call_bike = await call_bike(k)
                         print(f"콜바이크 결과: {result_call_bike}, 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({'bike':result_call_bike})
+                        await websocket.send_json({'bike':result_call_bike, 'clusterName':data['clusterName']})
             except asyncio.TimeoutError:
                 await websocket.send_json({"msg":"세션이 만료되었습니다."})
                 await websocket.close()

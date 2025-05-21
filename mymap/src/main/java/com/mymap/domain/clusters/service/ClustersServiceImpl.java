@@ -108,7 +108,8 @@ public class ClustersServiceImpl implements ClustersService {
     @Override
     @Transactional
     public List<MarkerClusterDTO> abstractCluster(long journeyNo){
-        List<Object[]> clusters = subwayRepository.getClusterGrouping(journeyNo);
+        List<Object[]> clusters = subwayRepository.getClusterGrouping(journeyNo)
+                .orElseThrow(()->new BusinessException(ErrorCode.DO_NOT_WORK));
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
         int clusterId = 0;
         String[] cluster = createClusterNameHasCid(clusters.get(0));

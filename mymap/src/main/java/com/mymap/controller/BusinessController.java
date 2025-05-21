@@ -1,13 +1,12 @@
 package com.mymap.controller;
 
-import com.mymap.domain.clusters.dto.ClusterMsgDTO;
-import com.mymap.domain.clusters.dto.FilteredBusDTO;
-import com.mymap.domain.clusters.dto.JourneyDTO;
-import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.dto.*;
 import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.service.BusFilterService;
 import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
+import com.mymap.domain.geoms.TransferDTO;
+import com.mymap.domain.geoms.TransferReqDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +27,11 @@ public class BusinessController {
     @GetMapping("/crawling")
     public List<String> crawling(){
         return Crawling.crawlSelenium();
+    }
+
+    @PostMapping("/transfer")
+    public List<TransferDTO> transfer(@RequestBody TransferReqDTO dto){
+        return geomService.findTransfers(dto);
     }
 
     @PostMapping("/journey")

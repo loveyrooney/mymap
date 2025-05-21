@@ -14,7 +14,7 @@ public enum ErrorCode {
     JOURNEY_INSERT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"경로 등록에 실패하였습니다."),
     JOURNEY_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"경로 수정에 실패하였습니다."),
     TOKEN_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Generate Token Failed"),
-    NOT_EXIST_AUTHCODE(HttpStatus.NOT_FOUND,"이메일 인증 코드를 확인할 수 없습니다."),
+    DO_NOT_WORK(HttpStatus.INTERNAL_SERVER_ERROR,"do not work DB function"),
     NOT_EXIST(HttpStatus.NOT_FOUND, "Data Is Not Exist");
 
     private final HttpStatus httpStatus;
