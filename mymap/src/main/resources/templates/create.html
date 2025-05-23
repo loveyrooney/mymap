@@ -9,8 +9,38 @@
   <div layout:fragment="content">
     <div class="wrap">
       <div id="search_wrap" class="util">
+        <i class="fa-solid fa-circle-info fa-xl" id="guide"></i>
         <input type="text" id="addr" placeholder="주소를 입력하세요" />
         <button type="button" id="searchBtn">검색</button>
+      </div>
+      <div id="guide_wrap" class="hidden">
+        <i class="fa-solid fa-xmark" id="guide_wrap_close"></i>
+        <div id="guide_box">
+          <span>💡경로 등록 가이드</span>
+          <span
+            >1️⃣출발역/도착역 : 출발지/도착지에서 도보로 닿을 수 있는 정류장.
+            각각 1개 역 이상 등록</span
+          >
+          <span>2️⃣버스 정류장 환승역의 경우</span>
+          <span
+            >앞차에서 내린 정류장에서 바로 환승하는 경우엔 그 정류장 등록</span
+          >
+          <span
+            >앞차에서 내린 정류장과 다른 곳에서 환승하는 경우엔 환승하는
+            정류장만 등록</span
+          >
+          <span
+            >ex: 서울역 버스환승센터 3번승강장에서 내리고, 6번승강장에서
+            환승하는 경우, 6번승강장만 등록</span
+          >
+          <span
+            >3️⃣지하철 역 도착정보는 역 이름이 같으면 노선 상관없이 모두
+            조회되므로 같은 이름의 역 1개만 등록</span
+          >
+        </div>
+      </div>
+      <div id="create_map_wrap">
+        <div id="map"></div>
       </div>
       <div id="regi_wrap" class="regi_wrap">
         <div class="flex_between">
@@ -24,7 +54,7 @@
             </select>
             <button type="button" id="categ_choose">선택</button>
           </div>
-          <button type="button" id="registerBtn">경로최종등록</button>
+          <button type="button" id="registerBtn">경로등록</button>
         </div>
         <div id="from_to_box" class="hidden">
           <input
@@ -45,8 +75,35 @@
           <button type="button" id="tf_regi_btn">등록</button>
         </div>
       </div>
-      <div id="map_wrap">
-        <div id="map"></div>
+      <div id="modal_wrap" class="hidden">
+        <p>지정하신 경로의 출/퇴근 여부를 선택해 주세요.</p>
+        <label for="route_go">출근</label>
+        <input
+          id="route_go"
+          type="radio"
+          name="direction"
+          value="출근"
+          checked
+        />
+        <label for="route_back">퇴근</label>
+        <input id="route_back" type="radio" name="direction" value="퇴근" />
+        <p>해당 경로로 최종 등록 하시겠습니까?</p>
+        <button type="button" id="create_journey">경로최종등록</button>
+      </div>
+      <div class="copyright_box">
+        <span>이 페이지는 다음 출처 정보를 활용하여 제작되었습니다.</span>
+        <a href="https://data.seoul.go.kr/dataList/OA-12764/F/1/datasetView.do"
+          >Open File, 서울특별시, 서울시 지하철 실시간 도착정보</a
+        >
+        <a href="https://data.seoul.go.kr/dataList/OA-13252/F/1/datasetView.do"
+          >Open API, 서울특별시, 서울시 공공자전거 대여소 정보</a
+        >
+        <a href="https://data.seoul.go.kr/dataList/OA-1095/F/1/datasetView.do"
+          >Open File, 서울특별시, 서울시 버스노선 정보조회 서비스</a
+        >
+        <a href="https://www.data.go.kr/data/15000303/openapi.do"
+          >Open API, 서울특별시, 서울특별시_정류소정보조회 서비스</a
+        >
       </div>
     </div>
   </div>

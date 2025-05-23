@@ -11,8 +11,28 @@
   overflow: hidden;
 }
 
-#house {
+.copyright_box {
+  //position: fixed;
   position: relative;
+  z-index: 10;
+  //top: 90vh;
+  padding: 5px;
+  text-align: right;
+  //right: 1vw;
+  font-size: xx-small;
+  font-weight: 300;
+}
+
+.copyright_box a {
+  display: block;
+  color: #2f383f;
+  text-decoration: none;
+}
+.cc_license img {
+  width: 90px;
+}
+.cc_license span {
+  color: #2f383f;
 }
 
 .util {
@@ -28,11 +48,18 @@
   position: fixed;
   top: 0;
   z-index: 500;
-  left: 15px;
-  margin: 15px 0 15px 0;
+  margin: 15px;
   padding: 10px;
   background-color: #ffffffab;
   border-radius: 5px;
+  font-weight: 400;
+  font-size: x-small;
+  text-decoration: none;
+  color: black;
+}
+
+#crawling_data:hover {
+  cursor: pointer;
   font-weight: 500;
 }
 
@@ -103,6 +130,15 @@
   z-index: 502;
 }
 
+.call_vehicles button:hover {
+  background-color: #2f383f;
+  color: white;
+}
+
+.call_btn_action {
+  border: 2px solid #2f383f;
+}
+
 .call_bus_bike,
 .call_sub {
   height: 70vh;
@@ -123,13 +159,36 @@
 }
 
 .route_title {
-  width: 100px;
+  width: 30vw;
   text-align: center;
-  border: 2px solid #0056ff;
+  //border: 2px solid #0056ff;
   border-radius: 10px;
   line-height: 2.5;
-  background-color: #0056ff;
   color: white;
+}
+
+.air_bus {
+  background-color: rgb(44, 174, 255);
+}
+
+.town_bus {
+  background-color: rgb(111, 255, 0);
+}
+
+.blue_bus {
+  background-color: #0056ff;
+}
+
+.green_bus {
+  background-color: rgb(33 243 19);
+}
+
+.yellow_bus {
+  background-color: rgb(223, 194, 6);
+}
+
+.far_bus {
+  background-color: #d90c0c;
 }
 
 .route_box {
@@ -140,21 +199,99 @@
 .route_box span,
 .s_route_box span {
   display: block;
+  font-size: small;
+  font-weight: 500;
 }
 
 .s_route_box {
-  width: 35vw;
-  border: 2px solid #0056ff;
+  width: 30vw;
   border-radius: 10px;
-  background-color: #0056ff;
   color: white;
-  padding: 5px;
+  padding: 5px 7px;
+}
+
+.line1 {
+  background-color: #0056ff;
+}
+
+.line2 {
+  background-color: rgb(14, 162, 93);
+}
+
+.line3 {
+  background-color: rgb(255, 140, 0);
+}
+
+.line4 {
+  background-color: rgb(0, 157, 255);
+}
+
+.line5 {
+  background-color: rgb(129, 6, 223);
+}
+
+.line6 {
+  background-color: rgb(150, 67, 11);
+}
+
+.line7 {
+  background-color: rgb(83, 133, 21);
+}
+
+.line8 {
+  background-color: rgb(255, 0, 191);
+}
+
+.line9 {
+  background-color: rgb(174, 153, 17);
+}
+
+.central_line {
+  background-color: rgb(126, 255, 234);
+}
+
+.air_line {
+  background-color: rgb(74, 165, 255);
+}
+
+.itx_line {
+  background-color: rgb(24, 227, 193);
+}
+
+.suin_line {
+  background-color: yellow;
+}
+
+.new_bundang_line {
+  background-color: rgb(148, 19, 47);
+}
+
+.uiee_line {
+  background-color: rgb(160, 198, 22);
+}
+
+.west_line {
+  background-color: rgb(93, 247, 65);
+}
+
+.sinrim_line {
+  background-color: rgb(77, 121, 250);
+}
+
+.gg_line {
+  background-color: rgb(34, 113, 249);
+}
+
+.gtxa_line {
+  background-color: rgb(189, 103, 255);
 }
 
 .s_route_content {
-  width: 100px;
+  width: 45vw;
   display: flex;
   flex-direction: column;
+  font-size: small;
+  font-weight: 500;
 }
 
 .bike_tit {
@@ -167,4 +304,17 @@
 
 .bike_content {
   width: 10vw;
+}
+
+#call_refresh {
+  position: fixed;
+  z-index: 500;
+  top: 94vh;
+  right: 7vw;
+  color: #2f383f;
+}
+
+#call_refresh:hover,
+#call_wrap_close:hover {
+  color: #747f88;
 }

@@ -113,7 +113,8 @@ async function refreshCall() {
 }
 
 // call transfer id list
-async function callTransfer(vehicle, lat, lon) {
+async function callTransfer(token, vehicle, lat, lon) {
+  console.log(token);
   try {
     const response = await fetch(`/api/transfer`, {
       method: "POST",
@@ -121,7 +122,7 @@ async function callTransfer(vehicle, lat, lon) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ vehicle: vehicle, lat: lat, lon: lon }),
     });
@@ -161,10 +162,16 @@ categ_choose.addEventListener("click", async function () {
     }
     tfBox.classList.remove("hidden");
     tfBox.classList.add("transfer_box");
-    let tfLists = await callTransfer(val, current.lat, current.lon);
+    let token = sessionStorage.getItem("token");
+    let tfLists = await callTransfer(token, val, current.lat, current.lon);
     if (tfLists == null) {
-      refreshCall();
-      tfLists = await callTransfer(val, current.lat, current.lon);
+      let newToken = await refreshCall();
+      tfLists = await callTransfer(
+        newToken.accessToken,
+        val,
+        current.lat,
+        current.lon
+      );
     }
     tfSelect.replaceChildren();
     tfLists.forEach((tf) => {
@@ -173,11 +180,6 @@ categ_choose.addEventListener("click", async function () {
       op.setAttribute("value", `${tf.tfId}_${tf.stName}`);
       tfSelect.appendChild(op);
     });
-    // let btn = document.createElement("button");
-    // btn.setAttribute("type", "button");
-    // btn.setAttribute("id", "tf_regi_btn");
-    // btn.textContent = "등록";
-    // tfBox.appendChild(btn);
   }
 });
 
@@ -224,7 +226,7 @@ fromToRegiBtn.addEventListener("click", function () {
         }
         console.log(delKey);
         delKey.forEach((k) => {
-          delete registerForm[`${k}`];
+          delete registerForm[k];
         });
         console.log("삭제후", registerForm);
       }
@@ -285,8 +287,63 @@ tfRegiBtn.addEventListener("click", function () {
   }
 });
 
-// 최종 journey regster
+async function callRegister(token) {
+  try {
+    const response = await fetch(`/api/journey`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(registerForm),
+    });
+    const data = await response.json();
+    if (!response.ok) throw Error(data.msg);
+    return data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
+// 경로등록 유효성 검사
 const registerBtn = document.querySelector("#registerBtn");
-registerBtn.addEventListener("click", function () {
+registerBtn.addEventListener("click", async function () {
   //컨펌창을 띄워서 확인시킨 후 fetch 요청
+  const confirm = window.confirm("해당 마커들로 경로를 등록 하시겠습니까?");
+  let keys = Object.keys(registerForm);
+  let vehicleFilter = keys.filter((key) => {
+    !key.includes("Bus") && !key.includes("Bike") && !key.includes("Sub");
+  });
+  let busFilter = keys.filter((key) => key.includes("Bus"));
+  if (confirm) {
+    if (registerForm == {}) alert("마커를 등록하세요.");
+    else if (!keys.includes("fromName") || !keys.includes("toName"))
+      alert("출발지와 도착지는 모두 있어야 합니다.");
+    else if (vehicleFilter.length > 0) alert("이동 수단을 등록해 주세요.");
+    else if (busFilter.length == 1)
+      alert(
+        "버스 정류장은 출발/환승/도착 중 2개 영역 이상에 있거나 아예 없어야 합니다."
+      );
+    else {
+      document.querySelector("#modal_wrap").className = "register_modal";
+    }
+  }
+});
+
+// 최종 경로 등록
+const createJourney = document.querySelector("#create_journey");
+const radio = document.querySelector('input[name="direction"]:checked');
+createJourney.addEventListener("click", async function () {
+  registerForm["direction"] = radio.value;
+  let register = await callRegister(sessionStorage.getItem("token"));
+  if (register == null) {
+    let newToken = await refreshCall();
+    register = await callRegister(newToken);
+  } else {
+    console.log(register);
+    window.location.href = "/view/main";
+  }
 });

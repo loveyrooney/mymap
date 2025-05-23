@@ -7,7 +7,10 @@ import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
 import com.mymap.domain.geoms.TransferDTO;
 import com.mymap.domain.geoms.TransferReqDTO;
+import com.mymap.exception.BusinessException;
+import com.mymap.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Log4j2
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -84,19 +88,24 @@ public class BusinessController {
         return dto.getNo();
     }
 
-    @DeleteMapping("/journey")
-    public void deleteJourney(@RequestBody JourneyDTO dto){
-        clustersService.deleteJourney(dto.getNo());
-        geomService.deleteFromToGeoms(dto);
-        clustersService.deleteMarkerCluster(dto.getNo());
-        clustersService.deleteFilteredBus(dto.getNo());
+    @DeleteMapping("/journey/{jno}")
+    public long deleteJourney(@PathVariable long jno){
+        try {
+            JourneyDTO dto = clustersService.findJourneyDTO(jno);
+            geomService.deleteFromToGeoms(dto);  //userNo, fromName, toName
+            clustersService.deleteJourneyByNo(dto.getNo());
+            clustersService.deleteMarkerCluster(dto.getNo());
+            clustersService.deleteFilteredBus(dto.getNo());
+        } catch (Exception e){
+            throw new BusinessException(ErrorCode.JOURNEY_DELETE_FAILED);
+        }
+        return jno;
     }
 
     @GetMapping("/journeys")
     public List<JourneyDTO> journeys(){
         // main 페이지에서 fetch 요청을 받는 곳. 해당 유저의 journey list 를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("main: "+auth.getPrincipal());
         return clustersService.findJourneyAllByUserNo((Long)auth.getPrincipal());
     }
 
@@ -104,7 +113,6 @@ public class BusinessController {
     public List<MarkerDTO> map_geom(@PathVariable long jno){
         // map 페이지에서 fetch 요청을 받는 곳. 마커들의 geometry 정보를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("map: "+auth.getPrincipal());
         List<MarkerClusterDTO> clusters = clustersService.findMarkerClusterByJno(jno);
         // 지금은 클러스터 좌표만 보내주고 있는데 각각의 정류장 좌표도 보내줘야 함.
         return geomService.findGeoms(clusters,(Long)auth.getPrincipal(),jno);
@@ -112,10 +120,8 @@ public class BusinessController {
 
     @PostMapping("/map_msg")
     public Map<String, ClusterMsgDTO> map_msg(@RequestBody Map<String,String> body){
-        System.out.println("jno: "+body.get("jno"));
         long jno = Long.parseLong(body.get("jno"));
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("map: "+auth.getPrincipal());
         List<MarkerClusterDTO> clusterList = clustersService.findMarkerClusterByJno(jno);
         // map 페이지에서 fetch 요청을 받는 곳. 실시간 조회를 위한 클라이언트의 msg list 를 보내야함
         return clustersService.convertToClusterMsg(clusterList,jno,(String)body.get("direction"));

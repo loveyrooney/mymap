@@ -13,13 +13,13 @@ const map = new kakao.maps.Map(mapContainer, mapOption);
 function addMarker(position, role) {
   let imageSrc, imageSize;
   if (role === "dp") {
-    imageSrc = "/images/human.png";
+    imageSrc = "/images/departure.png";
     imageSize = new kakao.maps.Size(50, 50); // 마커 이미지의 크기
   } else if (role === "ar") {
-    imageSrc = "/images/school.png";
+    imageSrc = "/images/arrive.png";
     imageSize = new kakao.maps.Size(50, 50);
   } else {
-    imageSrc = "/images/subway.png";
+    imageSrc = "/images/marker.png";
     imageSize = new kakao.maps.Size(45, 45);
   }
   let markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize),
@@ -35,21 +35,25 @@ function addMarker(position, role) {
 
 /* 툴팁 추가 */
 function addTooltip(position, data) {
+  let vehicle = [];
   let bus = "";
   if (data.bus) {
     bus = "<span>BUS</span>";
+    vehicle.push("bus");
   }
   let sub = "";
   if (data.sub) {
     sub = "<span>SUBWAY</span>";
+    vehicle.push("sub");
   }
   let bike = "";
   if (data.bike) {
     bike = "<span>BIKE</span>";
+    vehicle.push("bike");
   }
   let content =
     '<div class="infoBox">' +
-    '<span style="width:100%; font-size:0.7rem;">' +
+    '<span style="width:100%; font-size:0.7rem; font-weight: 500;">' +
     data.clusterName +
     "</span>" +
     '<div class="flex_center badges">' +
@@ -64,7 +68,7 @@ function addTooltip(position, data) {
     xAnchor: 0.5, // 컨텐츠의 x 위치
     yAnchor: 0, // 컨텐츠의 y 위치
   });
-  return customOverlay;
+  return { tooltip: customOverlay, vehicles: vehicle };
 }
 
 /* refresh token auth */
@@ -125,38 +129,58 @@ const callWarpClose = document.querySelector("#call_wrap_close");
 const clusterTitle = document.querySelector("#cluster_tit");
 const bList = document.querySelector("#bus_bike_list");
 const sList = document.querySelector("#sub_list");
+const bBtn = document.querySelector("#bBtn");
+const sBtn = document.querySelector("#sBtn");
+const bBox = document.querySelector("#call_bus_bike");
+const sBox = document.querySelector("#call_sub");
 //const callOverlay = document.querySelector("#call_wrap_overlay");
-function targetOpen(clusterName) {
+function targetOpen(clusterName, vehicles) {
   //   callOverlay.classList.remove("hidden");
   //   callOverlay.classList.add("call_overlay");
-  callWrap.classList.remove("hidden");
-  callWrap.classList.add("call_wrap");
+  if (!vehicles.includes("bus")) {
+    bBox.className = "hidden";
+    sBox.className = "call_sub";
+    sBtn.className = "call_btn_action";
+    bBtn.className = "";
+  } else {
+    bBox.className = "call_bus_bike";
+    sBox.className = "hidden";
+    bBtn.className = "call_btn_action";
+    sBtn.className = "";
+  }
+  callWrap.className = "call_wrap";
   clusterTitle.textContent = clusterName;
   bList.replaceChildren();
   sList.replaceChildren();
 }
 
+// 토스트 팝업 닫기
 callWarpClose.addEventListener("click", (e) => {
   //console.log(e.target);
-  callWrap.classList.remove("call_wrap");
-  callWrap.classList.add("hidden");
+  callWrap.className = "hidden";
 });
 
-const bBtn = document.querySelector("#bBtn");
-const sBtn = document.querySelector("#sBtn");
-const bBox = document.querySelector("#call_bus_bike");
-const sBox = document.querySelector("#call_sub");
+// 토스트 팝업 내 버스 지하철 display 토글
 bBtn.addEventListener("click", () => {
-  bBox.classList.remove("hidden");
-  bBox.classList.add("call_bus_bike");
-  sBox.classList.remove("call_sub");
-  sBox.classList.add("hidden");
+  bBox.className = "call_bus_bike";
+  sBox.className = "hidden";
+  bBtn.className = "call_btn_action";
+  sBtn.className = "";
 });
 sBtn.addEventListener("click", () => {
-  bBox.classList.remove("call_bus_bike");
-  bBox.classList.add("hidden");
-  sBox.classList.remove("hidden");
-  sBox.classList.add("call_sub");
+  bBox.className = "hidden";
+  sBox.className = "call_sub";
+  sBtn.className = "call_btn_action";
+  bBtn.className = "";
+});
+
+// 새로고침 버튼 클릭 시 메시지 전송
+const callRefresh = document.querySelector("#call_refresh");
+callRefresh.addEventListener("click", function (e) {
+  console.log(dataSet);
+  bList.replaceChildren();
+  sList.replaceChildren();
+  webSocket.send(JSON.stringify(dataSet[clusterTitle.textContent]));
 });
 
 /* websocket 관련 */
@@ -239,24 +263,26 @@ document.addEventListener("DOMContentLoaded", async function () {
     let placePosition = new kakao.maps.LatLng(geom.lat, geom.lon);
     //console.log("placePosition", placePosition);
     let marker = addMarker(placePosition, geom.group);
-    let tooltip = addTooltip(placePosition, dataSet[geom.clusterName]);
-    tooltip.setMap(map);
+    let resultTooltip = addTooltip(placePosition, dataSet[geom.clusterName]);
+    resultTooltip.tooltip.setMap(map);
     kakao.maps.event.addListener(marker, "click", function () {
-      targetOpen(geom.clusterName);
+      targetOpen(geom.clusterName, resultTooltip.vehicles);
       webSocket.send(JSON.stringify(dataSet[geom.clusterName]));
     });
     bounds.extend(placePosition); // 검색된 좌표 위치 저장
   });
   //call crawling
   const call_crawling = await callCrawling();
-  call_crawling.forEach((d) => d.slice(5));
   console.log(call_crawling);
   const slider = document.querySelector("#crawling_data");
-  let index = 0;
-  setInterval(() => {
-    slider.textContent = call_crawling[index];
-    index = (index + 1) % call_crawling.length;
-  }, 3000);
+  if (call_crawling.length > 0) {
+    let index = 0;
+    call_crawling.forEach((d, i) => (call_crawling[i] = d.slice(5)));
+    setInterval(() => {
+      slider.textContent = call_crawling[index];
+      index = (index + 1) % call_crawling.length;
+    }, 3000);
+  }
 });
 
 function createCongetionMsg(c) {
@@ -268,17 +294,70 @@ function createCongetionMsg(c) {
   else return "";
 }
 
+function abstractBusRouteType(routeType) {
+  if (routeType == 1) {
+    return "air_bus";
+  } else if (routeType == 2) {
+    return "town_bus";
+  } else if (routeType == 3) {
+    return "blue_bus";
+  } else if (routeType == 4) {
+    return "green_bus";
+  } else if (routeType == 5) {
+    return "yellow_bus";
+  } else {
+    return "far_bus";
+  }
+}
+
+function abstractSubRouteType(routeType) {
+  if (routeType == "1001") {
+    return "line1";
+  } else if (routeType == "1002") {
+    return "line2";
+  } else if (routeType == "1003") {
+    return "line3";
+  } else if (routeType == "1004") {
+    return "line4";
+  } else if (routeType == "1005") {
+    return "line5";
+  } else if (routeType == "1006") {
+    return "line6";
+  } else if (routeType == "1007") {
+    return "line7";
+  } else if (routeType == "1008") {
+    return "line8";
+  } else if (routeType == "1009") {
+    return "line9";
+  } else if (routeType == "1063") {
+    return "central_line";
+  } else if (routeType == "1065") {
+    return "air_line";
+  } else if (routeType == "1067") {
+    return "itx_line";
+  } else if (routeType == "1075") {
+    return "suin_line";
+  } else if (routeType == "1077") {
+    return "new_bundang_line";
+  } else if (routeType == "1092") {
+    return "uiee_line";
+  } else if (routeType == "1093") {
+    return "west_line";
+  } else if (routeType == "1094") {
+    return "sinrim_line";
+  } else if (routeType == "1081") {
+    return "gg_line";
+  } else if (routeType == "1032") {
+    return "gtxa_line";
+  } else {
+    return "";
+  }
+}
+
 webSocket.onopen = function (event) {
   console.log("Connected to WebSocket server.");
   webSocket.send(sessionStorage.getItem("token"));
 };
-
-// 집 버튼 클릭 시 메시지 전송
-const house = document.querySelector("#house");
-house.addEventListener("click", function (e) {
-  console.log(dataSet);
-  webSocket.send(JSON.stringify(dataSet["용산"]));
-});
 
 // 웹소켓 통신 결과 동적 추가
 webSocket.onmessage = async function (event) {
@@ -287,10 +366,11 @@ webSocket.onmessage = async function (event) {
   if (data.bus) {
     data.bus.forEach((d) => {
       //console.log(d);
+      let routeType = abstractBusRouteType(d.routeType);
       let li = document.createElement("li");
       li.className = "flex_evenly route_li";
       let title = document.createElement("span");
-      title.className = "route_title";
+      title.className = `route_title ${routeType}`;
       title.textContent = `${d.rtNm} ${d.deTourAt == "11" ? "(우회)" : ""}`;
       let div = document.createElement("div");
       div.className = "route_box";
@@ -340,15 +420,16 @@ webSocket.onmessage = async function (event) {
   if (data.sub) {
     data.sub.forEach((d) => {
       //console.log(d);
+      let routeType = abstractSubRouteType(d.subwayId);
       let li = document.createElement("li");
       li.className = "flex_evenly s_route_li";
       let titdiv = document.createElement("div");
-      titdiv.className = "s_route_box";
+      titdiv.className = `s_route_box ${routeType}`;
       let title1 = document.createElement("span");
       let title2 = document.createElement("span");
       let tit = d.trainLineNm.split("-");
-      title1.textContent = tit[0];
-      title2.textContent = tit[1];
+      title1.textContent = tit[1];
+      title2.textContent = tit[0];
       titdiv.append(title1, title2);
       let div = document.createElement("div");
       div.className = "s_route_content";
@@ -368,6 +449,8 @@ webSocket.onmessage = async function (event) {
 
 webSocket.onclose = function (event) {
   console.log("Connection closed.");
+  alert("서버 세션이 만료되었습니다. 다시 로그인 해주세요!");
+  window.location.href = "/";
 };
 
 webSocket.onerror = function (event) {

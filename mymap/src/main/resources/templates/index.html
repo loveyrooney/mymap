@@ -1,45 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Title</title>
-  </head>
-  <body>
-    <h1>hello, mymap!</h1>
-    <form>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{/include/layout}"
+>
+  <div layout:fragment="content">
+    <h1 class="login_tit">hello, mymap!</h1>
+    <form class="login_form flex_column">
       <input type="text" name="userId" placeholder="id" required />
-      <input type="text" name="password" placeholder="pw" required />
-      <button type="button" id="login">로그인</button>
+      <input type="password" name="password" placeholder="pw" required />
+      <button type="button" id="login" class="login">login</button>
     </form>
+  </div>
+  <th:block layout:fragment="script">
     <script type="module">
       const form = document.querySelector("form");
-      document
-        .querySelector("#login")
-        .addEventListener("click", async function () {
-          try {
-            const response = await fetch("/auth/login", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                userId: form.userId.value,
-                password: form.password.value,
-              }),
-            });
+      const loginBtn = document.querySelector("#login");
+      const pwInput = document.querySelector("input[name='password']");
+      async function login() {
+        if (form.userId.value == "") alert("아이디를 입력하세요");
+        if (form.password.value == "") alert("비밀번호를 입력하세요");
+        try {
+          const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: form.userId.value,
+              password: form.password.value,
+            }),
+          });
 
-            const data = await response.json();
-            if (response.status !== 200) throw new Error(data.msg);
-            sessionStorage.setItem("token", data.accessToken);
-            if (sessionStorage.getItem("token")) {
-              console.log(sessionStorage.getItem("token"));
-              window.location.href = "/view/main";
-            }
-          } catch (e) {
-            console.log(e);
+          const data = await response.json();
+          if (response.status !== 200) throw new Error(data.msg);
+          sessionStorage.setItem("token", data.accessToken);
+          if (sessionStorage.getItem("token")) {
+            console.log(sessionStorage.getItem("token"));
+            window.location.href = "/view/main";
           }
-        });
+        } catch (e) {
+          alert(e);
+          form.userId.value = "";
+          form.password.value = "";
+          console.log(e);
+        }
+      }
+      loginBtn.addEventListener("click", login);
+      loginBtn.addEventListener("keydown", (e) => {
+        if (e.key == "Enter") login();
+      });
+      pwInput.addEventListener("keydown", (e) => {
+        if (e.key == "Enter") login();
+      });
     </script>
-  </body>
+  </th:block>
 </html>

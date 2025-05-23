@@ -9,7 +9,6 @@ import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.Marker;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -110,14 +109,14 @@ public class GeomServiceImpl implements GeomService{
         FromToGeom fromGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getFromName()).orElse(null);
         FromToGeom toGeom = fromToGeomRepository.findByUserNoAndName(journey.getUserNo(), journey.getToName()).orElse(null);
         if(fromGeom==null){
-            Point fromPoint = geometryFactory.createPoint(new Coordinate(journey.getFromGeoms()[0],journey.getFromGeoms()[1]));
+            Point fromPoint = geometryFactory.createPoint(new Coordinate(journey.getFromGeoms()[1],journey.getFromGeoms()[0]));
             FromToGeom entity = FromToGeom.builder()
                             .userNo(journey.getUserNo()).name(journey.getFromName()).geom(fromPoint)
                             .build();
             fromToGeomRepository.save(entity);
         }
         if(toGeom==null){
-            Point toPoint = geometryFactory.createPoint(new Coordinate(journey.getToGeoms()[0],journey.getToGeoms()[1]));
+            Point toPoint = geometryFactory.createPoint(new Coordinate(journey.getToGeoms()[1],journey.getToGeoms()[0]));
             FromToGeom entity = FromToGeom.builder()
                     .userNo(journey.getUserNo()).name(journey.getToName()).geom(toPoint)
                     .build();
@@ -130,6 +129,7 @@ public class GeomServiceImpl implements GeomService{
     public void deleteFromToGeoms(JourneyDTO dto) {
         int fromCount = journeyRepository.findByUserNoAndFromName(dto.getUserNo(),dto.getFromName());
         int toCount = journeyRepository.findByUserNoAndToName(dto.getUserNo(),dto.getToName());
+        //System.out.println("in delete geom:"+fromCount+","+toCount);
         if(fromCount==0)
             fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getFromName());
         if(toCount==0)

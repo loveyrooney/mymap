@@ -18,6 +18,9 @@ public class RenderController {
     @GetMapping("/create")
     public String createRender(){return "create";}
 
+    @GetMapping("/edit/{jno}")
+    public String editRender(){return "edit";}
+
     @GetMapping("/map/{jno}")
     public String mapRender(@PathVariable Long jno){
         return "map";

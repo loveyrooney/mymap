@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],  # 모든 헤더 허용
 )
 
-SESSION_TIMEOUT = 60 * 5 # 60 * 20  # seconds
+SESSION_TIMEOUT = 60 * 20  # seconds
 
 def verify_jwt(token: str):
     jwt_key = os.getenv("JWT_KEY")
@@ -78,7 +78,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 # bus routes filter
-BUS_KEYSET = {'arrmsg1','arrmsg2','busRouteAbrv','busRouteId','busType1','busType2','congestion1','congestion2','deTourAt','isLast1','isLast2','nxtStn','routeType','rtNm','stNm','staOrd'}
+BUS_KEYSET = {'arrmsg1','arrmsg2','busRouteAbrv','busRouteId','busType1','busType2','congestion1','congestion2','deTourAt','isLast1','isLast2','nxtStn','routeType','rtNm','stNm','staOrd','routeType'}
 def bus_routes_filter(item: dict, routes: set) -> dict:
     if 'busRouteAbrv' in item and item['busRouteAbrv'] in routes:
         return {k: item[k] for k in item if k in BUS_KEYSET}

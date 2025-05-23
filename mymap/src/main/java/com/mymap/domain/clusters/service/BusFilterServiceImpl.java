@@ -8,11 +8,10 @@ import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -31,6 +30,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Log4j2
 @Service
 @PropertySource("classpath:mymap_jwt.properties")
 @RequiredArgsConstructor
@@ -107,7 +107,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                 }
                 routes.putIfAbsent(id,busRouteAbrvs);
             } catch (Exception e){
-                //System.out.println(e);
+                log.error("BusFilter call API Error: ",e);
                 throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
             }
         }
@@ -158,8 +158,8 @@ public class BusFilterServiceImpl implements BusFilterService{
         depths.put(2,depth2);
         depths.put(3,depth3);
         busRouteFilterUtil.setDepths(depths);
-        System.out.println("d2:"+depth2);
-        System.out.println("d3:"+depth3);
+        //System.out.println("d2:"+depth2);
+        //System.out.println("d3:"+depth3);
     }
 
     private Map<String, Set<String>> settingGroup(JourneyDTO journey, int routeCase){
@@ -262,17 +262,17 @@ public class BusFilterServiceImpl implements BusFilterService{
         RouteGraph graph = busRouteFilterUtil.getGraph();
         for(String tk : groups.get("transfer")){
             int fanOut = graph.countFanOut(tk);
-            System.out.println("fanout_"+tk+":"+graph.findFanOutAdjNodes(tk));
+            //System.out.println("fanout_"+tk+":"+graph.findFanOutAdjNodes(tk));
             if(fanOut>1){
                 Set<String> sortedSet = busRouteFilterUtil.sortRoutes(routes.get(tk),graph.findFanOutAdjNodes(tk),"out");
-                System.out.println("outSort_"+tk+" : "+sortedSet);
+                //System.out.println("outSort_"+tk+" : "+sortedSet);
                 routes.put(tk,sortedSet);
             } else {
                 int fanIn = graph.countFanIn(tk);
-                System.out.println("fanin_"+tk+":"+graph.findFanInAdjNodes(tk));
+                //System.out.println("fanin_"+tk+":"+graph.findFanInAdjNodes(tk));
                 if(fanIn>1){
                     Set<String> sortedSet = busRouteFilterUtil.sortRoutes(routes.get(tk),graph.findFanInAdjNodes(tk),"in");
-                    System.out.println("inSort_"+tk+" : "+sortedSet);
+                    //System.out.println("inSort_"+tk+" : "+sortedSet);
                     routes.put(tk,sortedSet);
                 }
             }

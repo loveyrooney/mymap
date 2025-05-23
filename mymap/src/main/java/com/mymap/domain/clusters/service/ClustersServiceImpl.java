@@ -1,26 +1,24 @@
 package com.mymap.domain.clusters.service;
 
 import com.mymap.domain.*;
-import com.mymap.domain.clusters.dto.ClusterMsgDTO;
-import com.mymap.domain.clusters.dto.FilteredBusDTO;
-import com.mymap.domain.clusters.dto.JourneyDTO;
-import com.mymap.domain.clusters.dto.MarkerClusterDTO;
+import com.mymap.domain.clusters.dto.*;
 import com.mymap.domain.clusters.entity.*;
 import com.mymap.domain.clusters.repository.FilteredBusRepository;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.repository.MarkerClusterRepository;
-import com.mymap.domain.geoms.GeomService;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class ClustersServiceImpl implements ClustersService {
@@ -30,7 +28,6 @@ public class ClustersServiceImpl implements ClustersService {
     private final JourneyRepository journeyRepository;
     private final SubwayRepository subwayRepository;
     private final RegionRepository regionRepository;
-    private final GeomService geomService;
     private final Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
 
@@ -72,13 +69,22 @@ public class ClustersServiceImpl implements ClustersService {
                 }
             }
         } catch (IllegalAccessException e) {
+            log.error("journey update mapping error:",e);
             throw new BusinessException(ErrorCode.JOURNEY_UPDATE_FAILED);
         }
     }
 
     @Override
+    public JourneyDTO findJourneyDTO(long jno) {
+        Journey journey = findJourneyByNo(jno);
+        return JourneyDTO.builder()
+                .no(jno).userNo(journey.getUserNo()).fromName(journey.getFromName()).toName(journey.getToName())
+                .build();
+    }
+
+    @Override
     @Transactional
-    public void deleteJourney(long no) {
+    public void deleteJourneyByNo(long no) {
         journeyRepository.deleteByNo(no);
     }
 
@@ -216,7 +222,7 @@ public class ClustersServiceImpl implements ClustersService {
         } else {
             clusterInfo[1] = "from_to_geo";
         }
-        System.out.println("clusterInfo: "+clusterInfo[0]+","+clusterInfo[1]);
+        //System.out.println("clusterInfo: "+clusterInfo[0]+","+clusterInfo[1]);
 //        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
 //                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
 //                .add((String)cluster[1]);

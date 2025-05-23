@@ -24,5 +24,6 @@ public interface ClustersService {
     void updateJourney(JourneyDTO dto);
     void deleteMarkerCluster(long no);
     void deleteFilteredBus(long no);
-    void deleteJourney(long no);
+    void deleteJourneyByNo(long no);
+    JourneyDTO findJourneyDTO(long jno);
 }

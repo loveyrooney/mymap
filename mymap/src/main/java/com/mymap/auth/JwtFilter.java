@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -42,11 +44,11 @@ public class JwtFilter extends OncePerRequestFilter {
                     Authentication authentication = new UsernamePasswordAuthenticationToken(Long.parseLong(userNo), null, new ArrayList<>());
                     // 6. SecurityContext에 인증 정보를 설정
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    System.out.println("if 안: "+SecurityContextHolder.getContext().getAuthentication());
+                    //System.out.println("if 안: "+SecurityContextHolder.getContext().getAuthentication());
                 }
             }catch (Exception e) {
                 // 토큰이 유효하지 않은 경우 예외 처리
-                System.out.println("jwtFilter exception: "+e);
+                log.info("jwtFilter exception: ",e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin")); // 꼭 필요
                 response.setHeader("Access-Control-Allow-Credentials", "true"); // 쿠키 쓰는 경우 필수

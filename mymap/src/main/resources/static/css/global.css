@@ -36,14 +36,29 @@ h1 {
   width: 100%;
 }
 
+.flex_right {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  //width: 100%;
+}
+
+.flex_column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 button {
   border: 0;
   box-shadow: 0 0 10px 4px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
 }
 
-button:hover {
-  curser: pointer;
+button:hover,
+i:hover {
+  cursor: pointer;
 }
 
 select,

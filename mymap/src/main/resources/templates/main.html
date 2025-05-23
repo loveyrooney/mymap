@@ -9,12 +9,12 @@
   <div layout:fragment="content">
     <div class="flex_between main_tit">
       <h1>hello, mymap main!</h1>
-      <button type="button" id="logout">logout</button>
+      <button type="button" id="logout" class="logoutBtn">logout</button>
     </div>
     <div id="route_pick">
       <div class="flex_between">
         <button type="button" class="go_edit" id="go_create">경로생성</button>
-        <button type="button" class="go_edit" id="go_edit">수정/삭제</button>
+        <button type="button" class="go_edit" id="go_delete">경로삭제</button>
       </div>
       <select id="journeys" name="journey"></select>
       <div class="flex_center">
@@ -28,6 +28,7 @@
     <script type="module">
       //journeys call
       const select = document.querySelector("#journeys");
+      const logout = document.querySelector("#logout");
       document.addEventListener("DOMContentLoaded", async function () {
         try {
           const response = await fetch("/api/journeys", {
@@ -45,11 +46,13 @@
           data.forEach((d) => {
             let op = document.createElement("option");
             op.setAttribute("value", d.no);
-            op.textContent = `${d.fromName}->${d.toName}`;
+            op.textContent = `${d.fromName} → ${d.toName}`;
             select.appendChild(op);
           });
         } catch (e) {
           console.log(e);
+          alert("로그인 세션이 만료되었습니다. 다시 로그인 해주세요!");
+          window.location.href = "/";
         }
       });
 
@@ -61,15 +64,45 @@
       });
 
       //move to route edit
-      document.querySelector("#go_edit").addEventListener("click", () => {
-        window.location.href = `/view/edit/${select.value}`;
-      });
+      // document.querySelector("#go_edit").addEventListener("click", () => {
+      //   window.location.href = `/view/edit/${select.value}`;
+      // });
       document.querySelector("#go_create").addEventListener("click", () => {
         window.location.href = `/view/create`;
       });
+      document
+        .querySelector("#go_delete")
+        .addEventListener("click", async function () {
+          const comfirm = window.confirm(
+            `${
+              select.options[select.selectedIndex].textContent
+            } 경로를 삭제하시겠습니까?`
+          );
+          if (comfirm) {
+            try {
+              const response = await fetch(`/api/journey/${select.value}`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                },
+              });
+              const data = await response.json();
+              if (response.status != 200) throw new Error(data.msg);
+              console.log(data);
+              select.querySelector(`option[value="${select.value}"]`).remove();
+              alert("경로를 삭제하였습니다.");
+            } catch (e) {
+              console.log(e);
+              //alert(e);
+            }
+          }
+        });
 
       // logout
-      document.querySelector("#logout").addEventListener("click", () => {
+      logout.addEventListener("click", () => {
         fetch("/auth/logout", {
           method: "GET",
           credentials: "include",
@@ -77,6 +110,7 @@
           .then(() => {
             console.log("로그아웃 완료");
             sessionStorage.removeItem("token");
+            window.location.href = "/";
           })
           .catch((e) => console.log("로그아웃 실패", e));
       });

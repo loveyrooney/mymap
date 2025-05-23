@@ -6,9 +6,11 @@ import com.mymap.domain.user.UserService;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+@Log4j2
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
-        System.out.println(userDTO.getUserId()+userDTO.getPassword());
+        //System.out.println(userDTO.getUserId()+userDTO.getPassword());
         long userNo = userService.login(userDTO);
         return userService.generateToken(userNo);
     }
@@ -29,16 +31,16 @@ public class AuthController {
             String userNoFromToken = jwtProvider.validateToken(oldToken).getSubject();
             long userNo = Long.parseLong(userNoFromToken);
             if (userNoFromToken==null){
-                System.out.println("refresh: Client token is null");
+                log.info("refresh: Client token is null");
                 throw new BusinessException(ErrorCode.NOT_REGISTERED_TOKEN);
             }
 
             if (!userService.isValid(userNo)) {
-                System.out.println("refresh: DB token is not exist");
+                log.info("refresh: DB token is not exist");
                 throw new BusinessException(ErrorCode.NOT_AUTHENTICATED_TOKEN);
             }
             // 유효한 토큰이면
-            System.out.println("refresh: Client token is authorized");
+            //System.out.println("refresh: Client token is authorized");
             return userService.generateToken(userNo);
         } catch (Exception e){
             throw new BusinessException(ErrorCode.TOKEN_PROCESSING_FAILED);
@@ -48,7 +50,7 @@ public class AuthController {
 
     @GetMapping("/logout")
     public ResponseEntity<?> logout(@CookieValue("refreshToken") String oldToken) {
-        System.out.println("logout: "+oldToken);
+        //System.out.println("logout: "+oldToken);
         try{
             String userNo = jwtProvider.validateToken(oldToken).getSubject();
             if (userNo!=null)

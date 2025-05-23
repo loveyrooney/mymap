@@ -13,6 +13,7 @@ public enum ErrorCode {
     NOT_REGISTERED_TOKEN(HttpStatus.UNAUTHORIZED,"Unregistered Token"),
     JOURNEY_INSERT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"경로 등록에 실패하였습니다."),
     JOURNEY_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"경로 수정에 실패하였습니다."),
+    JOURNEY_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"경로 삭제에 실패하였습니다."),
     TOKEN_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Generate Token Failed"),
     DO_NOT_WORK(HttpStatus.INTERNAL_SERVER_ERROR,"do not work DB function"),
     NOT_EXIST(HttpStatus.NOT_FOUND, "Data Is Not Exist");
