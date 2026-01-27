@@ -359,19 +359,19 @@ webSocket.onopen = function (event) {
   webSocket.send(sessionStorage.getItem("token"));
 };
 
-// 웹소켓 통신 결과 동적 추가
-webSocket.onmessage = async function (event) {
-  let data = await JSON.parse(event.data);
-  console.log(data);
-  if (data.bus) {
-    data.bus.forEach((d) => {
-      //console.log(d);
-      let routeType = abstractBusRouteType(d.routeType);
+function dynamicBusUI (d) {
+let routeType = abstractBusRouteType(d.routeType);
       let li = document.createElement("li");
       li.className = "flex_evenly route_li";
-      let title = document.createElement("span");
+      let title = document.createElement("div");
       title.className = `route_title ${routeType}`;
-      title.textContent = `${d.rtNm} ${d.deTourAt == "11" ? "(우회)" : ""}`;
+      let lineNm = document.createElement("span");
+      lineNm.className = "route_title_lineNm";
+      lineNm.textContent = `${d.rtNm} ${d.deTourAt == "11" ? "(우회)" : ""}`;
+      let stNm = document.createElement("span");
+      stNm.className = "route_title_stNm";
+      stNm.textContent = `${d.stNm}`
+      title.append(lineNm, stNm);
       let div = document.createElement("div");
       div.className = "route_box";
       let r1 = document.createElement("span");
@@ -403,7 +403,21 @@ webSocket.onmessage = async function (event) {
       div.append(r1, r2);
       li.append(title, div);
       bList.appendChild(li);
-    });
+}
+
+// 웹소켓 통신 결과 동적 추가
+webSocket.onmessage = async function (event) {
+  let data = await JSON.parse(event.data);
+  console.log(data);
+  if (data.bus) {
+    if(Array.isArray(data.bus)){
+      data.bus.forEach((d) => {
+         //console.log(d);
+         dynamicBusUI(d);
+      });
+    } else {
+      dynamicBusUI(data.bus);
+    }
   }
   if (data.bike) {
     let li = document.createElement("li");

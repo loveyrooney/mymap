@@ -23,7 +23,7 @@ public class JwtProvider {
 
     @Value("${jwt.private-key}")
     private String jwtPrivateKey;
-    private final long ACCESS_EXPIRED_TIME = 60 * 15; // 15분
+    private final long ACCESS_EXPIRED_TIME = 60 * 30; // 15분
     private final long REFRESH_EXPIRED_TIME = 60 * 60 * 24 * 7; // 7일
 
     // Base64로 인코딩된 개인키를 로드

@@ -282,9 +282,11 @@ public class BusFilterServiceImpl implements BusFilterService{
     private List<FilteredBusDTO> createFilteredBusDTOs(Set<String> group, long journeyNo) {
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         List<FilteredBusDTO> lists = new ArrayList<>();
+        System.out.println("group line 285 : " + group);
         Iterator<String> iterator = group.iterator();
         while(iterator.hasNext()){
             String k = iterator.next();
+            System.out.println("k line 289 : " + k);
             FilteredBusDTO dto = new FilteredBusDTO();
             String clusterName = clustersService.findByArsId(journeyNo,k);
             dto.setJourneyNo(journeyNo);

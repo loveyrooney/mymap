@@ -105,8 +105,7 @@
 }
 
 #call_wrap_close {
-  margin: 10px;
-  padding: 5px;
+  margin: 20px 20px;
 }
 
 .call_wrap_tit {
@@ -116,27 +115,32 @@
 #cluster_tit {
   display: block;
   width: 75vw;
-  margin: 10px;
+  margin: 20px 10px 10px 10px;
 }
 
 .call_vehicles {
-  margin: 10px;
   position: relative;
   z-index: 501;
+  margin: 0 25px;
 }
 
-.call_vehicles button {
+.call_vehicles div {
   position: relative;
   z-index: 502;
+  padding: 5px 10px;
+  display: inline-block;
+  font-size: 0.8rem;
 }
 
-.call_vehicles button:hover {
+.call_vehicles div:hover {
   background-color: #2f383f;
   color: white;
+  cursor: pointer;
 }
 
 .call_btn_action {
-  border: 2px solid #2f383f;
+  background-color: #6b6c6c;
+  color: white;
 }
 
 .call_bus_bike,
@@ -160,11 +164,23 @@
 
 .route_title {
   width: 30vw;
-  text-align: center;
+  //text-align: center;
   //border: 2px solid #0056ff;
   border-radius: 10px;
-  line-height: 2.5;
+  //line-height: 2.5;
   color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.route_title_lineNm {
+ font-weight: bold;
+ font-size: 1rem;
+}
+
+.route_title_stNm {
+  font-size: 0.7rem;
 }
 
 .air_bus {
@@ -194,6 +210,7 @@
 .route_box {
   width: 150px;
   text-align: center;
+  padding: 10px;
 }
 
 .route_box span,
