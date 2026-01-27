@@ -142,16 +142,26 @@ public class ClustersServiceImpl implements ClustersService {
                 else
                     bikeKeySet.add((String)clusters.get(i)[1]);
             }
+            if(i == clusters.size()-1){
+                clusterId = (int) clusters.get(i)[3];
+                cluster = createClusterNameHasCid(clusters.get(i));
+                putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
+                hasNotCidStartIdx = -1;
+            }
         }
 
         // 여기서는 얘가 사용자가 지정한 출발지인지, 도착지인지를 찾아서 그 이름으로 클러스터네임 지정
         // 출발지도 도착지도 아닌 경우 정류장 이름으로 클러스터네임 지정
-        for(int i=hasNotCidStartIdx; i<clusters.size(); i++){
-            createClusterNameHasNotCid(journeyNo,clusters.get(i));
+        if(hasNotCidStartIdx != -1){
+            for(int i=hasNotCidStartIdx; i<clusters.size(); i++){
+                createClusterNameHasNotCid(journeyNo,clusters.get(i));
+            }
         }
+
 
         List<MarkerClusterDTO> lists = new ArrayList<>();
         Iterator<String> iterator1 = clusterKeySet.keySet().iterator();
+        System.out.println("clusterKeySet line 155 : " + clusterKeySet);
         while(iterator1.hasNext()){
             String k = iterator1.next();
             Map<String,List<String>> v = clusterKeySet.get(k);
@@ -187,7 +197,7 @@ public class ClustersServiceImpl implements ClustersService {
         return clusterName;
     }
 
-    private void putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
+    private void  putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
         List<String> subs = new ArrayList<>(List.copyOf(subKeySet));
         List<String> buses = new ArrayList<>(List.copyOf(busKeySet));
         List<String> bikes = new ArrayList<>(List.copyOf(bikeKeySet));

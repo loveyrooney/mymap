@@ -49,8 +49,7 @@
   padding: 5px 10px;
 }
 
-#route_pick > button,
-.call_vehicles > button {
+#route_pick > button {
   background-color: white;
   margin: 5px;
   padding: 10px;
