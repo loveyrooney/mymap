@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -32,13 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 @Service
-@PropertySource("classpath:mymap_jwt.properties")
 @RequiredArgsConstructor
 public class BusFilterServiceImpl implements BusFilterService{
     private final BusRouteFilterUtil busRouteFilterUtil;
     private final ClustersService clustersService;
 
-    @Value("${topis-key}")
+    @Value("${topis.key}")
     private String topisKey;
 
 

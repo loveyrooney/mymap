@@ -1,13 +1,12 @@
 package com.mymap.auth;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Log4j2
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -31,31 +30,34 @@ public class JwtFilter extends OncePerRequestFilter {
         // 1. 요청 헤더에서 JWT 토큰을 추출
         String token = getJwtFromRequest(request);
 
-        if (token != null && !token.isEmpty()) {
+        if (token != null && !token.isEmpty() && !token.equals("null") && !token.equals("undefined")) {
             try {
                 // 2. validateToken 메서드를 사용하여 토큰을 검증하고 Claims 추출
                 Claims claims = jwtProvider.validateToken(token);
+                
                 // 3. Claims에서 사용자 정보 추출
                 String userNo = claims.getSubject(); // 예: sub 필드에 사용자가 저장되어 있다고 가정
-                System.out.println("validate token: "+userNo);
+                log.debug("validate token: {}", userNo);
+                
                 // 4. 사용자 인증 처리
                 if (userNo != null) {
                     // 5. 사용자 정보를 기반으로 Authentication 객체 생성
                     Authentication authentication = new UsernamePasswordAuthenticationToken(Long.parseLong(userNo), null, new ArrayList<>());
                     // 6. SecurityContext에 인증 정보를 설정
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    //System.out.println("if 안: "+SecurityContextHolder.getContext().getAuthentication());
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 // 토큰이 유효하지 않은 경우 예외 처리
-                log.info("jwtFilter exception: ",e);
+                log.error("JWT Filter validation failed for token: {}", token, e);
+                SecurityContextHolder.clearContext();
+                
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin")); // 꼭 필요
-                response.setHeader("Access-Control-Allow-Credentials", "true"); // 쿠키 쓰는 경우 필수
+                response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin")); 
+                response.setHeader("Access-Control-Allow-Credentials", "true"); 
 
-                // 선택적으로 content-type도 지정
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Access Token Unauthorized\"}");
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"error\":\"Access Token Unauthorized\", \"message\":\"" + e.getMessage() + "\"}");
+                response.getWriter().flush();
                 return;
             }
         }
@@ -72,4 +74,3 @@ public class JwtFilter extends OncePerRequestFilter {
         return null;
     }
 }
-

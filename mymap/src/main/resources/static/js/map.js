@@ -107,7 +107,7 @@ async function refreshCall() {
     }
     return refreshData;
   } catch (e) {
-    console.log(e.msg);
+    console.log(e.error || e.message || "Refresh failed");
     return null;
   }
 }
@@ -127,7 +127,7 @@ async function callTransfer(token, vehicle, lat, lon) {
       body: JSON.stringify({ vehicle: vehicle, lat: lat, lon: lon }),
     });
     const data = await response.json();
-    if (!response.ok) throw Error(data.msg);
+    if (!response.ok) throw Error(data.error || data.msg || "API request failed");
     return data;
   } catch (error) {
     console.log(error);
@@ -300,7 +300,7 @@ async function callRegister(token) {
       body: JSON.stringify(registerForm),
     });
     const data = await response.json();
-    if (!response.ok) throw Error(data.msg);
+    if (!response.ok) throw Error(data.error || data.msg || "API request failed");
     return data;
   } catch (error) {
     console.log(error);
@@ -341,8 +341,16 @@ createJourney.addEventListener("click", async function () {
   let register = await callRegister(sessionStorage.getItem("token"));
   if (register == null) {
     let newToken = await refreshCall();
-    register = await callRegister(newToken);
-  } else {
+    if (newToken && newToken.accessToken) {
+        register = await callRegister(newToken.accessToken);
+    } else {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        window.location.href = "/";
+        return;
+    }
+  } 
+  
+  if (register) {
     console.log(register);
     window.location.href = "/view/main";
   }
