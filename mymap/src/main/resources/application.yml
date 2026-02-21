@@ -1,4 +1,7 @@
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
   application:
     name: mymap
   datasource:
@@ -38,9 +41,13 @@ server:
 
 logging:
   level:
-    sql: debug
-    org.hibernate.type: trace
-    com.mymap: info
+    root: WARN
+    sql: WARN
+    org.hibernate.type: WARN
+    com.mymap: INFO
+
+thymeleaf:
+  cache: false
 
 jwt:
   public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtzLzFhKD3do8YaWHqJ11EHRIKKdImm/joJKesrI8xCpY4zwOr8v5YB4OdRJ7m7eAWsTLSpgYC9H9/xYu0CypUxwxnulxeGVpqgRt27Tod+vDkxBE5nOFDKmfrz9u8dSg0ANtIlt0mym8xTKqPvGVPOxCn4CpH9MbCXZS1B35UgNcAcDj9Wztt4PEVr4ilOlGmGwx+5orpm0m1wxpoSnf3ZeunnN0nbO2z42scXgtr2/yitKIE/7jsVSbVwrtEbgYl8bu6lBFsASgh9YUlFF4pAFR8wv9ihj5GSn1yg1558sHKld3WFiIUmtVIPePfBLMla2vXe40xTnFCp8xJfWhTwIDAQAB

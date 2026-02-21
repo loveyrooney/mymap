@@ -49,7 +49,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 print(f"받은 메시지: {data}, 받은 시각: {int(time.time() * 1000)}")
                 # data를 큐에 넣고 호출하는 구조로 만들어야 됨.
                 if "bus" in data:
-                    print("here")
                     for k,v in data['bus'].items():
                         # data 중 중복 arsid 요청이 있으면 캐시에서 가져오는 구조로 만들어야 됨. 그렇지 않으면 call_bus 실행
                         result_call_bus = await call_bus(k,set(v))
@@ -60,8 +59,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         result_call_sub = await call_subway(k)
                         print(f"콜섭 결과: {result_call_sub}, 받은 시각: {int(time.time() * 1000)}")
                         await websocket.send_json({'sub':result_call_sub, 'clusterName':data['clusterName']})
-                if "bike" in data:
-                    print("here")        
+                if "bike" in data:       
                     for k in data['bike']:
                         result_call_bike = await call_bike(k)
                         print(f"콜바이크 결과: {result_call_bike}, 받은 시각: {int(time.time() * 1000)}")
@@ -94,6 +92,9 @@ async def call_bus(arsId:str, routes:set)-> list:
             #print(f"Final URL: {response.url}")
             if response.status == 200:
                 data = await response.text()  
+                #print(f"data===> {data}")
+                if(xmltodict.parse(data).get("ServiceResult",{}).get("msgBody",{}) == None):
+                    return []
                 itemLists = xmltodict.parse(data).get("ServiceResult",{}).get("msgBody",{}).get("itemList",[])
                 print(f"api 받은 시각: {int(time.time() * 1000)}")
                 print(f"itemLists===> {itemLists}")

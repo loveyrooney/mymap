@@ -43,6 +43,7 @@ public class BusFilterServiceImpl implements BusFilterService{
     @Override
     @Transactional
     public List<FilteredBusDTO> runBusFilter(JourneyDTO journey, int routeCase){
+        busRouteFilterUtil.reset();
         //1. api call
         busRouteFilterUtil.setRoutes(callRoutes(journey));
         //2. depth setting

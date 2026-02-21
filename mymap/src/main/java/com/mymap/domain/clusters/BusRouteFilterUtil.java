@@ -17,6 +17,13 @@ public class BusRouteFilterUtil {
     Map<Integer,Set<String>> depths = new ConcurrentHashMap<>();
     RouteGraph graph = new RouteGraph();
 
+    public void reset() {
+        routes.clear();
+        groups.clear();
+        depths.clear();
+        graph = new RouteGraph();
+    }
+
     public List<List<String>> edgeSearch(Set<String> dp, Set<String> ar, String dk, String ak){
         List<List<String>> freepath = new ArrayList<>();
         for(String route : dp){
