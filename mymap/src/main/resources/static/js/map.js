@@ -337,18 +337,44 @@ registerBtn.addEventListener("click", async function () {
 const createJourney = document.querySelector("#create_journey");
 const radio = document.querySelector('input[name="direction"]:checked');
 createJourney.addEventListener("click", async function () {
+  createJourney.disabled = true; // 중복 클릭 방지
   registerForm["direction"] = radio.value;
-  let register = await callRegister(sessionStorage.getItem("token"));
-  if (register == null) {
-    let newToken = await refreshCall();
-    if (newToken && newToken.accessToken) {
-        register = await callRegister(newToken.accessToken);
-    } else {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        window.location.href = "/";
-        return;
-    }
-  } 
+  
+  let register = null;
+  try {
+      const response = await fetch(`/api/journey`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(registerForm),
+      });
+
+      if (response.status === 401) {
+          // 토큰 만료 시 리프레시 후 재시도
+          let newToken = await refreshCall();
+          if (newToken && newToken.accessToken) {
+              register = await callRegister(newToken.accessToken);
+          } else {
+              alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+              window.location.href = "/";
+              return;
+          }
+      } else if (!response.ok) {
+          const data = await response.json();
+          throw Error(data.error || data.msg || "API request failed");
+      } else {
+          register = await response.json();
+      }
+  } catch (error) {
+      console.log(error);
+      alert("경로 등록 중 오류가 발생했습니다: " + error.message);
+  } finally {
+      createJourney.disabled = false; // 에러 시 복구용 (성공 시 페이지 이동됨)
+  }
   
   if (register) {
     console.log(register);

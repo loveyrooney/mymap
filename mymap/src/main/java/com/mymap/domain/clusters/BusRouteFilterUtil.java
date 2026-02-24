@@ -3,12 +3,10 @@ package com.mymap.domain.clusters;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
 @Getter @Setter
 @NoArgsConstructor
 public class BusRouteFilterUtil {

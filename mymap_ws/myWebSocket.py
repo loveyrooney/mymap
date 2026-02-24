@@ -68,11 +68,15 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_json({"msg":"세션이 만료되었습니다."})
                 await websocket.close()
                 break        
-    except Exception as e:
-        print(f"예외 발생: {e}")
-        await websocket.close()
     except WebSocketDisconnect:
-        print("클라이언트 클로즈")
+        print("클라이언트 클로즈 (정상 종료)")
+    except Exception as e:
+        print(f"예외 발생: {type(e).__name__} - {e}")
+        # 이미 닫힌 소켓에 대해 close()를 호출하면 발생하는 RuntimeError 방지
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 # bus routes filter
