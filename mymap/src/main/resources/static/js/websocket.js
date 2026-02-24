@@ -113,9 +113,9 @@ async function displayPlaces() {
       if (refresh.accessToken) {
         window.location.href =
           "/view/map/" + window.location.pathname.split("/")[3];
-      } else throw new Error(refresh.msg);
+      } else throw new Error(refresh.error || refresh.msg || "Refresh failed");
     }
-    if (!response.ok) throw new Error(data.msg);
+    if (!response.ok) throw new Error(data.error || data.msg || "Geom failed");
     return data;
   } catch (error) {
     console.log(error);
@@ -199,7 +199,7 @@ async function callCrawling() {
       },
     });
     const data = await response.json();
-    if (!response.ok) throw Error(data.msg);
+    if (!response.ok) throw Error(data.error || data.msg || "Crawling failed");
     return data;
   } catch (error) {
     console.log("crawling error:", error);
@@ -223,7 +223,7 @@ async function fetchData() {
       }),
     });
     const data = await response.json();
-    if (!response.ok) throw Error(data.msg);
+    if (!response.ok) throw Error(data.error || data.msg || "Map msg failed");
     return data;
   } catch (error) {
     console.log("map_msg error:", error);

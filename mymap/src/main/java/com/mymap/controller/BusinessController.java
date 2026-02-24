@@ -27,10 +27,11 @@ public class BusinessController {
     private final ClustersService clustersService;
     private final BusFilterService busFilterService;
     private final GeomService geomService;
+    private final Crawling crawling;
 
     @GetMapping("/crawling")
     public List<String> crawling(){
-        return Crawling.crawlSelenium();
+        return crawling.crawlSelenium();
     }
 
     @PostMapping("/transfer")

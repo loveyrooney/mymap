@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -32,40 +31,39 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 @Service
-@PropertySource("classpath:mymap_jwt.properties")
 @RequiredArgsConstructor
 public class BusFilterServiceImpl implements BusFilterService{
-    private final BusRouteFilterUtil busRouteFilterUtil;
     private final ClustersService clustersService;
 
-    @Value("${topis-key}")
+    @Value("${topis.key}")
     private String topisKey;
 
 
     @Override
     @Transactional
     public List<FilteredBusDTO> runBusFilter(JourneyDTO journey, int routeCase){
+        BusRouteFilterUtil busRouteFilterUtil = new BusRouteFilterUtil();
         //1. api call
         busRouteFilterUtil.setRoutes(callRoutes(journey));
         //2. depth setting
         busRouteFilterUtil.setDepths(new ConcurrentHashMap<>(Map.of(2,new HashSet<>(),3,new HashSet<>())));
-        searchDepths(journey,routeCase);
+        searchDepths(journey,routeCase, busRouteFilterUtil);
         // group setting
-        Map<String, Set<String>> groups = settingGroup(journey,routeCase);
+        Map<String, Set<String>> groups = settingGroup(journey,routeCase, busRouteFilterUtil);
         busRouteFilterUtil.setGroups(groups);
         //4. freePath setting
         List<List<String>> freePaths = busRouteFilterUtil.createPassList(groups.get("departure"),groups.get("arrive"));
         //4. routes filtering
-        routesFilter(freePaths,routeCase);
+        routesFilter(freePaths,routeCase, busRouteFilterUtil);
         //5. filtered routes sorting
         if(routeCase!=1)
-            sortFilteredRoutes();
+            sortFilteredRoutes(busRouteFilterUtil);
         //6. filteredBus dto list setting
         List<FilteredBusDTO> lists = new ArrayList<>();
-        lists.addAll(createFilteredBusDTOs(groups.get("departure"),journey.getNo()));
+        lists.addAll(createFilteredBusDTOs(groups.get("departure"),journey.getNo(), busRouteFilterUtil));
         if(routeCase!=1)
-            lists.addAll(createFilteredBusDTOs(groups.get("transfer"),journey.getNo()));
-        lists.addAll(createFilteredBusDTOs(groups.get("arrive"),journey.getNo()));
+            lists.addAll(createFilteredBusDTOs(groups.get("transfer"),journey.getNo(), busRouteFilterUtil));
+        lists.addAll(createFilteredBusDTOs(groups.get("arrive"),journey.getNo(), busRouteFilterUtil));
         return lists;
     }
 
@@ -114,46 +112,59 @@ public class BusFilterServiceImpl implements BusFilterService{
         return routes;
     }
 
-    private void searchDepths(JourneyDTO journey, int routeCase){
+    private void searchDepths(JourneyDTO journey, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<Integer,Set<String>> depths = busRouteFilterUtil.getDepths();
 
         // TF를 탐색하면서 뎁스를 확보한다. 이 과정에서 d1-d2, d3-d4 간선 확보
         Set<String> depth2 = new HashSet<>();
         Set<String> depth3 = new HashSet<>();
-        for(String tk : journey.getTfBus()){
-            boolean isD2 = false;
-            boolean isD3 = false;
-            if(routeCase==2 || routeCase==4){
-                for(String dk : journey.getFromBus()){
-                    List<List<String>> depth2Filter = busRouteFilterUtil.edgeSearch(routes.get(dk), routes.get(tk), dk, tk);
-                    if(depth2Filter.size()>0){
-                        depth2.add(tk);
-                        isD2 = true;
-                    }
-                }
-                if(!isD2) {
-                    if(routeCase==4){
-                        for (String ak : journey.getToBus()) {
-                            List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(tk), routes.get(ak), tk, ak);
-                            if (depth3Filter.size()>0)
-                                depth3.add(tk);
+        
+        String[] tfBuses = journey.getTfBus();
+        if (tfBuses != null) {
+            for(String tk : tfBuses){
+                boolean isD2 = false;
+                boolean isD3 = false;
+                if(routeCase==2 || routeCase==4){
+                    String[] fromBuses = journey.getFromBus();
+                    if (fromBuses != null) {
+                        for(String dk : fromBuses){
+                            List<List<String>> depth2Filter = busRouteFilterUtil.edgeSearch(routes.get(dk), routes.get(tk), dk, tk);
+                            if(depth2Filter.size()>0){
+                                depth2.add(tk);
+                                isD2 = true;
+                            }
                         }
-                    } else
-                        depth3.add(tk);
-                }
-            } else {
-                for(String ak : journey.getToBus()){
-                    List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(ak), routes.get(tk), ak, tk);
-                    if(depth3Filter.size()>0){
-                        depth3.add(tk);
-                        isD3 = true;
                     }
+                    if(!isD2) {
+                        if(routeCase==4){
+                            String[] toBuses = journey.getToBus();
+                            if (toBuses != null) {
+                                for (String ak : toBuses) {
+                                    List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(tk), routes.get(ak), tk, ak);
+                                    if (depth3Filter.size()>0)
+                                        depth3.add(tk);
+                                }
+                            }
+                        } else
+                            depth3.add(tk);
+                    }
+                } else {
+                    String[] toBuses = journey.getToBus();
+                    if (toBuses != null) {
+                        for(String ak : toBuses){
+                            List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(ak), routes.get(tk), ak, tk);
+                            if(depth3Filter.size()>0){
+                                depth3.add(tk);
+                                isD3 = true;
+                            }
+                        }
+                    }
+                    if(!isD3)
+                        depth2.add(tk);
                 }
-                if(!isD3)
-                    depth2.add(tk);
-            }
 
+            }
         }
         depths.put(2,depth2);
         depths.put(3,depth3);
@@ -162,29 +173,29 @@ public class BusFilterServiceImpl implements BusFilterService{
         //System.out.println("d3:"+depth3);
     }
 
-    private Map<String, Set<String>> settingGroup(JourneyDTO journey, int routeCase){
+    private Map<String, Set<String>> settingGroup(JourneyDTO journey, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
         Map<String, Set<String>> groups = new ConcurrentHashMap<>();
         // routecase 에 따른 조건 분기
         if(routeCase==1){
-            groups.putIfAbsent("departure",new HashSet<>(Arrays.asList(journey.getFromBus())));
-            groups.putIfAbsent("arrive",new HashSet<>(Arrays.asList(journey.getToBus())));
+            groups.putIfAbsent("departure", journey.getFromBus() != null ? new HashSet<>(Arrays.asList(journey.getFromBus())) : new HashSet<>());
+            groups.putIfAbsent("arrive", journey.getToBus() != null ? new HashSet<>(Arrays.asList(journey.getToBus())) : new HashSet<>());
         } else if(routeCase==2){
-            groups.putIfAbsent("departure",new HashSet<>(Arrays.asList(journey.getFromBus())));
-            groups.putIfAbsent("transfer",new HashSet<>(busRouteFilterUtil.getDepths().get(2)));
-            groups.putIfAbsent("arrive",new HashSet<>(busRouteFilterUtil.getDepths().get(3)));
+            groups.putIfAbsent("departure", journey.getFromBus() != null ? new HashSet<>(Arrays.asList(journey.getFromBus())) : new HashSet<>());
+            groups.putIfAbsent("transfer", new HashSet<>(busRouteFilterUtil.getDepths().get(2)));
+            groups.putIfAbsent("arrive", new HashSet<>(busRouteFilterUtil.getDepths().get(3)));
         } else if(routeCase==3){
-            groups.putIfAbsent("departure",new HashSet<>(busRouteFilterUtil.getDepths().get(2)));
-            groups.putIfAbsent("transfer",new HashSet<>(busRouteFilterUtil.getDepths().get(3)));
-            groups.putIfAbsent("arrive",new HashSet<>(Arrays.asList(journey.getToBus())));
+            groups.putIfAbsent("departure", new HashSet<>(busRouteFilterUtil.getDepths().get(2)));
+            groups.putIfAbsent("transfer", new HashSet<>(busRouteFilterUtil.getDepths().get(3)));
+            groups.putIfAbsent("arrive", journey.getToBus() != null ? new HashSet<>(Arrays.asList(journey.getToBus())) : new HashSet<>());
         } else {
-            groups.putIfAbsent("departure",new HashSet<>(Arrays.asList(journey.getFromBus())));
-            groups.putIfAbsent("transfer",new HashSet<>(Arrays.asList(journey.getTfBus())));
-            groups.putIfAbsent("arrive",new HashSet<>(Arrays.asList(journey.getToBus())));
+            groups.putIfAbsent("departure", journey.getFromBus() != null ? new HashSet<>(Arrays.asList(journey.getFromBus())) : new HashSet<>());
+            groups.putIfAbsent("transfer", journey.getTfBus() != null ? new HashSet<>(Arrays.asList(journey.getTfBus())) : new HashSet<>());
+            groups.putIfAbsent("arrive", journey.getToBus() != null ? new HashSet<>(Arrays.asList(journey.getToBus())) : new HashSet<>());
         }
         return groups;
     }
 
-    private void routesFilter(List<List<String>> freePaths, int routeCase){
+    private void routesFilter(List<List<String>> freePaths, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
         Map<Integer,Set<String>> depths = busRouteFilterUtil.getDepths();
@@ -208,7 +219,9 @@ public class BusFilterServiceImpl implements BusFilterService{
 
         // 출발지 필터링
         if(routeCase==1)
-            groups.put("departure",new HashSet<>());
+            groups.get("departure").forEach(k-> {
+                if(routes.get(k) != null) routes.get(k).clear();
+            });
         else if(routeCase==3)
             groups.get("departure").forEach(k->routes.get(k).retainAll(depth3TF));
         else //(routeCase==2 || routeCase==4)
@@ -217,7 +230,9 @@ public class BusFilterServiceImpl implements BusFilterService{
 
         // 도착지 필터링
         if(routeCase==1)
-            groups.put("arrive",new HashSet<>());
+            groups.get("arrive").forEach(k-> {
+                if(routes.get(k) != null) routes.get(k).clear();
+            });
         else if(routeCase==2)
             groups.get("arrive").forEach(k->routes.get(k).retainAll(depth2TF));
         else //if(routeCase==3 || routeCase==4)
@@ -254,7 +269,7 @@ public class BusFilterServiceImpl implements BusFilterService{
             busRouteFilterUtil.addPass(d2arpass);
     }
 
-    private void sortFilteredRoutes(){
+    private void sortFilteredRoutes(BusRouteFilterUtil busRouteFilterUtil){
         // 노선 방면에 따른 정렬 (정렬이 필요한 경우 탐색 및 정렬)
         //graph.getOutEdges().forEach((k,v)-> System.out.println("out_"+k+":"+v));
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
@@ -279,7 +294,8 @@ public class BusFilterServiceImpl implements BusFilterService{
         }
     }
 
-    private List<FilteredBusDTO> createFilteredBusDTOs(Set<String> group, long journeyNo) {
+    private List<FilteredBusDTO> createFilteredBusDTOs(Set<String> group, long journeyNo, BusRouteFilterUtil busRouteFilterUtil) {
+        if (group == null) return new ArrayList<>();
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         List<FilteredBusDTO> lists = new ArrayList<>();
         System.out.println("group line 285 : " + group);

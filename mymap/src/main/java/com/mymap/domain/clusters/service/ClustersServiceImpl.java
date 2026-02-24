@@ -28,7 +28,6 @@ public class ClustersServiceImpl implements ClustersService {
     private final JourneyRepository journeyRepository;
     private final SubwayRepository subwayRepository;
     private final RegionRepository regionRepository;
-    private final Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
 
 
     @Override
@@ -114,6 +113,7 @@ public class ClustersServiceImpl implements ClustersService {
     @Override
     @Transactional
     public List<MarkerClusterDTO> abstractCluster(long journeyNo){
+        Map<String,Map<String,List<String>>> clusterKeySet = new HashMap<>();
         List<Object[]> clusters = subwayRepository.getClusterGrouping(journeyNo)
                 .orElseThrow(()->new BusinessException(ErrorCode.DO_NOT_WORK));
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
@@ -126,12 +126,12 @@ public class ClustersServiceImpl implements ClustersService {
         // 클러스터 id 가 있는 경우의 클러스터 네이밍
         for(int i=0; i<clusters.size(); i++){
             if(clusters.get(i)[3]==null){
-                putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
+                if(i!=0) putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet, clusterKeySet);
                 hasNotCidStartIdx = i;
                 break;
             } else {
                 if((int)clusters.get(i)[3] != clusterId){
-                    putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
+                    putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet, clusterKeySet);
                     clusterId = (int) clusters.get(i)[3];
                     cluster = createClusterNameHasCid(clusters.get(i));
                 }
@@ -145,7 +145,7 @@ public class ClustersServiceImpl implements ClustersService {
             if(i == clusters.size()-1){
                 clusterId = (int) clusters.get(i)[3];
                 cluster = createClusterNameHasCid(clusters.get(i));
-                putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet);
+                putClusterSet(cluster[0],cluster[1],subKeySet,busKeySet,bikeKeySet, clusterKeySet);
                 hasNotCidStartIdx = -1;
             }
         }
@@ -154,14 +154,14 @@ public class ClustersServiceImpl implements ClustersService {
         // 출발지도 도착지도 아닌 경우 정류장 이름으로 클러스터네임 지정
         if(hasNotCidStartIdx != -1){
             for(int i=hasNotCidStartIdx; i<clusters.size(); i++){
-                createClusterNameHasNotCid(journeyNo,clusters.get(i));
+                createClusterNameHasNotCid(journeyNo,clusters.get(i), clusterKeySet);
             }
         }
 
 
         List<MarkerClusterDTO> lists = new ArrayList<>();
         Iterator<String> iterator1 = clusterKeySet.keySet().iterator();
-        System.out.println("clusterKeySet line 155 : " + clusterKeySet);
+        //System.out.println("clusterKeySet line 155 : " + clusterKeySet);
         while(iterator1.hasNext()){
             String k = iterator1.next();
             Map<String,List<String>> v = clusterKeySet.get(k);
@@ -197,7 +197,7 @@ public class ClustersServiceImpl implements ClustersService {
         return clusterName;
     }
 
-    private void  putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet){
+    private void  putClusterSet(String clusterName, String geomTable, Set<String> subKeySet, List<String> busKeySet,List<String> bikeKeySet, Map<String,Map<String,List<String>>> clusterKeySet){
         List<String> subs = new ArrayList<>(List.copyOf(subKeySet));
         List<String> buses = new ArrayList<>(List.copyOf(busKeySet));
         List<String> bikes = new ArrayList<>(List.copyOf(bikeKeySet));
@@ -218,7 +218,7 @@ public class ClustersServiceImpl implements ClustersService {
         bikeKeySet.clear();
     }
 
-    private void createClusterNameHasNotCid(long jno, Object[] cluster){
+    private void createClusterNameHasNotCid(long jno, Object[] cluster, Map<String,Map<String,List<String>>> clusterKeySet){
         String[] clusterInfo = new String[2];
         if("bus".equals(cluster[0]))
             clusterInfo[0] = journeyRepository.containsWhereBus(jno,(String)cluster[1]);
@@ -232,7 +232,7 @@ public class ClustersServiceImpl implements ClustersService {
         } else {
             clusterInfo[1] = "from_to_geo";
         }
-        //System.out.println("clusterInfo: "+clusterInfo[0]+","+clusterInfo[1]);
+        System.out.println("clusterInfo line 236 : "+clusterInfo[0]+","+clusterInfo[1]);
 //        clusterKeySet.computeIfAbsent(clusterName, k -> new HashMap<>())
 //                .computeIfAbsent((String)cluster[0], k -> new ArrayList<>())
 //                .add((String)cluster[1]);

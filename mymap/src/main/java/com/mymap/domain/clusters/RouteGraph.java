@@ -1,10 +1,8 @@
 package com.mymap.domain.clusters;
 
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@Component
 public class RouteGraph {
 
     private Map<String, Set<String>> outEdges = new HashMap<>();

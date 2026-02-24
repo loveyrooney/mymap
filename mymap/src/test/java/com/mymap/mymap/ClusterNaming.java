@@ -67,7 +67,7 @@ public class ClusterNaming {
 
     @Test
     public void partString(){
-        List<Object[]> clusters = subway.getClusterGrouping(1L);
+        List<Object[]> clusters = subway.getClusterGrouping(1L).orElseThrow();
         // ex) o[0] = "bus", o[1] = "02006", o[2] = "서울역버스환승센터", o[3] = 0 (cluster_id)
         int clusterId = 0;
         String[] cluster = createClusterNameHasCid(clusters.get(0));

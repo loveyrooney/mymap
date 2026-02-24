@@ -65,7 +65,7 @@ public class DBtest {
                         .fromName(journey.getFromName()).toName(journey.getToName())
                         .build();
         System.out.println(dto.getNo());
-        clustersService.deleteJourney(dto.getNo());
+        clustersService.deleteJourneyByNo(dto.getNo());
         geomService.deleteFromToGeoms(dto);
         clustersService.deleteMarkerCluster(dto.getNo());
         clustersService.deleteFilteredBus(dto.getNo());

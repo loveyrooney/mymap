@@ -3,12 +3,10 @@ package com.mymap.domain.clusters;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
 @Getter @Setter
 @NoArgsConstructor
 public class BusRouteFilterUtil {
@@ -16,6 +14,13 @@ public class BusRouteFilterUtil {
     Map<String, Set<String>> groups = new ConcurrentHashMap<>();
     Map<Integer,Set<String>> depths = new ConcurrentHashMap<>();
     RouteGraph graph = new RouteGraph();
+
+    public void reset() {
+        routes.clear();
+        groups.clear();
+        depths.clear();
+        graph = new RouteGraph();
+    }
 
     public List<List<String>> edgeSearch(Set<String> dp, Set<String> ar, String dk, String ak){
         List<List<String>> freepath = new ArrayList<>();
