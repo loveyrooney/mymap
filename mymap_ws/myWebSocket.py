@@ -83,11 +83,13 @@ async def websocket_endpoint(websocket: WebSocket):
 BUS_KEYSET = {'arrmsg1','arrmsg2','busRouteAbrv','busRouteId','busType1','busType2','congestion1','congestion2','deTourAt','isLast1','isLast2','nxtStn','routeType','rtNm','stNm','staOrd','routeType'}
 def bus_routes_filter(item: dict, routes: set) -> dict:
     print(f"hello busroutefilter : {item}, {routes}")
-    if 'busRouteAbrv' in item and item['busRouteAbrv'] in routes:
+    #if 'busRouteAbrv' in item and item['busRouteAbrv'] in routes:
+    if 'busRouteId' in item and item['busRouteId'] in routes:
         return {k: item[k] for k in item if k in BUS_KEYSET}
     return {}
 
 async def call_bus(arsId:str, routes:set)-> list:
+    # routes에서 첫번째 자리가 1이면 서울, 2면 경기
     api_key = os.getenv("BUS_API_KEY")
     url = f"http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid?serviceKey={api_key}&arsId={arsId}"
     #params ={'serviceKey' : api_key, 'arsId' : arsId }  이걸 지정하고 session.get(url, param=param)으로 하면 키내용이 바뀐다..

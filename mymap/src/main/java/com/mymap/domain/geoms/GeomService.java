@@ -11,4 +11,5 @@ public interface GeomService {
     void createFromToGeoms(JourneyDTO journey);
     void deleteFromToGeoms(JourneyDTO dto);
     List<TransferDTO> findTransfers(TransferReqDTO dto);
+    String findBusStationName(String arsId);
 }

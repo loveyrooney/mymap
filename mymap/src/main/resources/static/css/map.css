@@ -12,13 +12,10 @@
 }
 
 .copyright_box {
-  //position: fixed;
   position: relative;
   z-index: 10;
-  //top: 90vh;
   padding: 5px;
   text-align: right;
-  //right: 1vw;
   font-size: xx-small;
   font-weight: 300;
 }
@@ -164,10 +161,10 @@
 
 .route_title {
   width: 30vw;
-  //text-align: center;
-  //border: 2px solid #0056ff;
+  /*text-align: center;
+  border: 2px solid #0056ff; */
   border-radius: 10px;
-  //line-height: 2.5;
+  /*line-height: 2.5;*/
   color: white;
   display: flex;
   flex-direction: column;
@@ -207,9 +204,29 @@
   background-color: #d90c0c;
 }
 
+.purple_bus {
+  background-color: #7023bd;
+}
+
+.seat_bus {
+  background-color: #1684df;
+}
+
+.general_bus {
+  background-color: #10d3de;
+}
+
+.m_bus {
+  background-color: #345067;
+}
+
+.etc_bus {
+  background-color: #635959;
+}
+
 .route_box {
   width: 150px;
-  text-align: center;
+  /*text-align: center;*/
   padding: 10px;
 }
 

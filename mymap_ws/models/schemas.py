@@ -38,6 +38,6 @@ class BikeStatusItem(BaseModel):
 
 class WebSocketRequest(BaseModel):
     clusterName: str
-    bus: Optional[Dict[str, List[str]]] = None # arsId -> list of routeAbrv
+    bus: Optional[Dict[str, List[str]]] = None # arsId -> list of busRouteId
     sub: Optional[List[str]] = None # list of station names
     bike: Optional[List[str]] = None # list of station names

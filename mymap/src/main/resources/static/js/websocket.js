@@ -231,6 +231,25 @@ async function fetchData() {
   }
 }
 
+async function callGGStNm(arsid) {
+  try {
+    const response = await fetch(`/api/bus_station/${arsid}`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    });
+    const data = await response.text();
+    if (!response.ok) throw Error(data.error || data.msg || "bus_station failed");
+    return data;
+  } catch (error) {
+    console.log("bus_station error:", error);
+    return null;
+  }
+}
+
 function removeNulls(obj) {
   if (Array.isArray(obj)) {
     return obj
@@ -285,13 +304,40 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 });
 
+function createGGCongetionMsg(c) {
+  if (c == "1") return "여유";
+  else if (c == "2") return "보통";
+  else if (c == "3") return "혼잡";
+  else if (c == "4") return "매우혼잡";
+  else return "";
+}
+
 function createCongetionMsg(c) {
-  if (c == "0") return "없음";
-  else if (c == "3") return "여유";
+  if (c == "3") return "여유";
   else if (c == "4") return "보통";
   else if (c == "5") return "혼잡";
   else if (c == "6") return "매우혼잡";
   else return "";
+}
+
+function abstractGGBusRouteType(routeType) {
+  if (routeType == 11 || routeType == 21) {
+    return "far_bus";
+  } else if (routeType == 12 || routeType == 22) {
+    return "seat_bus";
+  } else if (routeType == 13 || routeType == 23) {
+    return "general_bus";
+  } else if (routeType == 14) {
+    return "m_bus";
+  } else if (routeType == 30) {
+    return "yellow_bus";
+  } else if (routeType == 41 || routeType == 42 || routeType == 43) {
+    return "purple_bus";
+  } else if (routeType == 51 || routeType == 52 || routeType == 53) {
+    return "air_bus";
+  } else {
+    return "etc_bus";
+  }
 }
 
 function abstractBusRouteType(routeType) {
@@ -359,6 +405,35 @@ webSocket.onopen = function (event) {
   webSocket.send(sessionStorage.getItem("token"));
 };
 
+async function dynamicGGBusUI (d) {
+let routeType = abstractGGBusRouteType(d.routeTypeCd);
+      let li = document.createElement("li");
+      li.className = "flex_evenly route_li";
+      let title = document.createElement("div");
+      title.className = `route_title ${routeType}`;
+      let lineNm = document.createElement("span");
+      lineNm.className = "route_title_lineNm";
+      lineNm.textContent = `${d.routeName}`;
+      let stNm = document.createElement("span");
+      stNm.className = "route_title_stNm";
+      let station = await callGGStNm(d.stationId);
+      stNm.textContent = `${station}`;
+      title.append(lineNm, stNm);
+      let div = document.createElement("div");
+      div.className = "route_box";
+      let r1 = document.createElement("span");
+      if(d.predictTime1){
+        r1.textContent = `${d.predictTime1}분 ${d.locationNo1 ? d.locationNo1+"번째 전" : ""} ${d.crowded1 ? createGGCongetionMsg(d.crowded1) : ""}`;
+      }
+      let r2 = document.createElement("span");
+      if(d.predictTime2){
+        r2.textContent = `${d.predictTime2}분 ${d.locationNo2 ? d.locationNo2+"번째 전" : ""} ${d.crowded2 ? createGGCongetionMsg(d.crowded2) : ""}`;
+      }
+      div.append(r1, r2);
+      li.append(title, div);
+      bList.appendChild(li);
+}
+
 function dynamicBusUI (d) {
 let routeType = abstractBusRouteType(d.routeType);
       let li = document.createElement("li");
@@ -413,10 +488,10 @@ webSocket.onmessage = async function (event) {
     if(Array.isArray(data.bus)){
       data.bus.forEach((d) => {
          //console.log(d);
-         dynamicBusUI(d);
+         d.routeId ? dynamicGGBusUI(d) : dynamicBusUI(d);
       });
     } else {
-      dynamicBusUI(data.bus);
+      d.routeId ? dynamicGGBusUI(data.bus) : dynamicBusUI(data.bus);
     }
   }
   if (data.bike) {

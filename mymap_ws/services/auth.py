@@ -12,5 +12,5 @@ def verify_jwt(token: str):
         payload = jwt.decode(token, public_key, algorithms=["RS256"])
         return payload
     except JWTError as e:
-        print(f"Authentication Exception: {e}")
+        print(f"authenticate 예외 발생: {e}")
         return None

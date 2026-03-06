@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -86,7 +87,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                 HttpURLConnection conn = (HttpURLConnection) realurl.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setRequestProperty("Content-type", "application/json");
-                String response = new BufferedReader(new InputStreamReader(conn.getInputStream())).readLine();
+                String response = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)).readLine();
                 //System.out.println(response);
                 // response to document
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -95,6 +96,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                 Document document = builder.parse(inputSource);
                 // 특정 xml 태그 abstract
                 XPath xpath = XPathFactory.newInstance().newXPath();
+                System.out.println("bus filter call line 99: "+ document.getTextContent());
                 XPathExpression expr = xpath.compile("//itemList/busRouteAbrv");
                 NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
                 Set<String> busRouteAbrvs = new HashSet<>();

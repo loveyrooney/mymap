@@ -135,4 +135,11 @@ public class GeomServiceImpl implements GeomService{
         if(toCount==0)
             fromToGeomRepository.deleteByUserNoAndName(dto.getUserNo(),dto.getToName());
     }
+
+    @Override
+    public String findBusStationName(String arsId){
+        Bus bus = busRepository.findByArsId(arsId)
+                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
+        return bus.getStationName();
+    }
 }
