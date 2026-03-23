@@ -45,7 +45,7 @@
           });
 
           const data = await response.json();
-          if (response.status != 200) throw new Error(data.msg);
+          if (response.status != 200) throw new Error(data);
           data.forEach((d) => {
             let op = document.createElement("option");
             op.setAttribute("value", d.no);

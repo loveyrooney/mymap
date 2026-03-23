@@ -48,6 +48,11 @@ public interface JourneyRepository extends JpaRepository<Journey,Long> {
 
     Optional<Journey> findByNo(Long no);
 
+    @Query(" select j.fromName from Journey j where j.no = :no and j.userNo = :userNo ")
+    Optional<String> findFromName(@Param("no") Long no, @Param("userNo") Long userNo);
+
+    boolean existsByNoAndUserNo(Long no, Long userNo);
+
     //@Query(" delete from Journey j where j.no = :no ")
     void deleteByNo(long no);
 

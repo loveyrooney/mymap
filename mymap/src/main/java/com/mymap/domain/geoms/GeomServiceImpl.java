@@ -13,9 +13,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -57,9 +54,7 @@ public class GeomServiceImpl implements GeomService{
     }
 
     @Override
-    public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth, long jno) {
-        Journey journey = journeyRepository.findByNo(jno)
-                .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
+    public List<MarkerDTO> findGeoms(List<MarkerClusterDTO> clusters, Long auth, String fromName) {
         List<MarkerDTO> markers = new ArrayList<>();
         for(MarkerClusterDTO dto : clusters){
             MarkerDTO mdto = new MarkerDTO();
@@ -67,16 +62,14 @@ public class GeomServiceImpl implements GeomService{
             if("from_to_geo".equals(dto.getGeomTable())){
                 FromToGeom fromToGeom = fromToGeomRepository.findByUserNoAndName(auth,dto.getClusterName())
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-                if(dto.getClusterName().equals(journey.getFromName()))
+                if(dto.getClusterName().equals(fromName))
                     mdto.setGroup("dp");
                 else
                     mdto.setGroup("ar");
                 mdto.setLon(String.valueOf(fromToGeom.getGeom().getX()));
                 mdto.setLat(String.valueOf(fromToGeom.getGeom().getY()));
             } else if("subway".equals(dto.getGeomTable())){
-                Pageable page = PageRequest.of(0, 1, Sort.by("no").ascending());
-                Subway subs = subwayRepository.findByStName(dto.getClusterName(),page)
-                        .getContent().stream().findFirst()
+                Subway subs = subwayRepository.findFirstByStationNameOrderByNoAsc(dto.getClusterName())
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
                 mdto.setGroup("tf");
                 mdto.setLon(String.valueOf(subs.getGeom().getX()));

@@ -96,7 +96,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                 Document document = builder.parse(inputSource);
                 // 특정 xml 태그 abstract
                 XPath xpath = XPathFactory.newInstance().newXPath();
-                System.out.println("bus filter call line 99: "+ document.getTextContent());
+                //System.out.println("bus filter call line 99: "+ document.getTextContent());
                 XPathExpression expr = xpath.compile("//itemList/busRouteAbrv");
                 NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
                 Set<String> busRouteAbrvs = new HashSet<>();

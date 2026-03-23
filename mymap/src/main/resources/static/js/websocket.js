@@ -223,7 +223,12 @@ async function fetchData() {
       }),
     });
     const data = await response.json();
-    if (!response.ok) throw Error(data.error || data.msg || "Map msg failed");
+    if(response.status == 401){
+      console.log(data);
+      alert(data.message);
+      window.location.href = "/view/main";
+    }
+    if (!response.ok) throw Error(data.error || data.message || "Map msg failed");
     return data;
   } catch (error) {
     console.log("map_msg error:", error);
@@ -491,7 +496,7 @@ webSocket.onmessage = async function (event) {
          d.routeId ? dynamicGGBusUI(d) : dynamicBusUI(d);
       });
     } else {
-      d.routeId ? dynamicGGBusUI(data.bus) : dynamicBusUI(data.bus);
+      data.bus.routeId ? dynamicGGBusUI(data.bus) : dynamicBusUI(data.bus);
     }
   }
   if (data.bike) {

@@ -1,6 +1,7 @@
 package com.mymap.controller;
 
 import com.mymap.domain.clusters.dto.*;
+import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.service.BusFilterService;
 import com.mymap.domain.geoms.GeomService;
@@ -27,6 +28,7 @@ public class BusinessController {
     private final ClustersService clustersService;
     private final BusFilterService busFilterService;
     private final GeomService geomService;
+    private final JourneyRepository journeyRepository;
     private final Crawling crawling;
 
     @GetMapping("/crawling")
@@ -114,15 +116,21 @@ public class BusinessController {
     public List<MarkerDTO> map_geom(@PathVariable long jno){
         // map 페이지에서 fetch 요청을 받는 곳. 마커들의 geometry 정보를 보내야함
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String fromName = journeyRepository.findFromName(jno,(Long)auth.getPrincipal())
+                .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
         List<MarkerClusterDTO> clusters = clustersService.findMarkerClusterByJno(jno);
         // 지금은 클러스터 좌표만 보내주고 있는데 각각의 정류장 좌표도 보내줘야 함.
-        return geomService.findGeoms(clusters,(Long)auth.getPrincipal(),jno);
+        return geomService.findGeoms(clusters,(Long)auth.getPrincipal(),fromName);
     }
 
     @PostMapping("/map_msg")
     public Map<String, ClusterMsgDTO> map_msg(@RequestBody Map<String,String> body){
         long jno = Long.parseLong(body.get("jno"));
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean authCheck = journeyRepository.existsByNoAndUserNo(jno,(Long)auth.getPrincipal());
+        if(!authCheck){
+            throw new BusinessException(ErrorCode.NOT_REGISTERED);
+        }
         List<MarkerClusterDTO> clusterList = clustersService.findMarkerClusterByJno(jno);
         // map 페이지에서 fetch 요청을 받는 곳. 실시간 조회를 위한 클라이언트의 msg list 를 보내야함
         return clustersService.convertToClusterMsg(clusterList,jno,(String)body.get("direction"));
