@@ -1,5 +1,6 @@
 package com.mymap.domain.clusters.service;
 
+import com.mymap.domain.BusRepository;
 import com.mymap.domain.clusters.RouteGraph;
 import com.mymap.domain.clusters.BusRouteFilterUtil;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
@@ -35,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class BusFilterServiceImpl implements BusFilterService{
     private final ClustersService clustersService;
+    private final BusRepository busRepository;
 
     @Value("${topis.key}")
     private String topisKey;
@@ -97,15 +99,15 @@ public class BusFilterServiceImpl implements BusFilterService{
                 // 특정 xml 태그 abstract
                 XPath xpath = XPathFactory.newInstance().newXPath();
                 //System.out.println("bus filter call line 99: "+ document.getTextContent());
-                XPathExpression expr = xpath.compile("//itemList/busRouteAbrv");
+                XPathExpression expr = xpath.compile("//itemList/busRouteId");
                 NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-                Set<String> busRouteAbrvs = new HashSet<>();
+                Set<String> busRouteIds = new HashSet<>();
                 for (int i = 0; i < nodes.getLength(); i++) {
-                    String adrvs = nodes.item(i).getTextContent();
-                    busRouteAbrvs.add(adrvs);
-                    //System.out.println(id+","+adrvs);
+                    String routeId = nodes.item(i).getTextContent();
+                    busRouteIds.add(routeId);
+                    //System.out.println(id+","+routeId);
                 }
-                routes.putIfAbsent(id,busRouteAbrvs);
+                routes.putIfAbsent(id,busRouteIds);
             } catch (Exception e){
                 log.error("BusFilter call API Error: ",e);
                 throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
@@ -171,8 +173,8 @@ public class BusFilterServiceImpl implements BusFilterService{
         depths.put(2,depth2);
         depths.put(3,depth3);
         busRouteFilterUtil.setDepths(depths);
-        //System.out.println("d2:"+depth2);
-        //System.out.println("d3:"+depth3);
+        // System.out.println("d2:"+depth2);
+        // System.out.println("d3:"+depth3);
     }
 
     private Map<String, Set<String>> settingGroup(JourneyDTO journey, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
@@ -197,6 +199,13 @@ public class BusFilterServiceImpl implements BusFilterService{
         return groups;
     }
 
+    private void setTransferRoutes(Map<String, Set<String>> routes, Map<String, Set<String>> groups) {
+        Set<String> dpars = new HashSet<>();
+        groups.get("departure").forEach(k->dpars.addAll(routes.get(k)));
+        groups.get("arrive").forEach(k->dpars.addAll(routes.get(k)));
+        groups.get("transfer").forEach(k->routes.get(k).retainAll(dpars));
+    }
+
     private void routesFilter(List<List<String>> freePaths, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
@@ -209,9 +218,9 @@ public class BusFilterServiceImpl implements BusFilterService{
             depths.get(2).forEach(k->depth2TF.addAll(routes.get(k)));
             depths.get(3).forEach(k->depth3TF.addAll(routes.get(k)));
 
-//            System.out.println("=== d2, d3 ===");
-//            System.out.println(depth2TF);
-//            System.out.println(depth3TF);
+        //    System.out.println("=== d2, d3 ===");
+        //    System.out.println(depth2TF);
+        //    System.out.println(depth3TF);
         }
 
         // depth2 ~ arrive 경로 뽑기 - 이 과정에서 d2-d4 간선을 추가할 수 있다.
@@ -246,19 +255,38 @@ public class BusFilterServiceImpl implements BusFilterService{
             groups.get("departure").forEach(k->dps.addAll(routes.get(k)));
             Set<String> ars = new HashSet<>();
             groups.get("arrive").forEach(k->ars.addAll(routes.get(k)));
-            depth2TF.retainAll(depth3TF);
-            depth3TF.retainAll(ars);
-            dps.addAll(depth2TF);
-            dps.addAll(depth3TF);
-            groups.get("transfer").forEach(k->routes.get(k).retainAll(dps));
 
             // d2-d3 방면 탐색 후 그래프 완성
-            busRouteFilterUtil.createPassList(depths.get(2),depths.get(3));
+            boolean isConnect = false;
+            for(String d3Id : depths.get(3)){
+                for(String d2Id : depths.get(2)){
+                    isConnect = busRepository.depth2_near_depth3(d2Id,d3Id).orElse(false);
+                    if(isConnect){
+                        break;
+                    }
+                }
+                if(isConnect){
+                    break;
+                }
+            }
+
+            if(isConnect){
+                depth2TF.retainAll(depth3TF);
+                depth3TF.retainAll(ars);
+                dps.addAll(depth2TF);
+                dps.addAll(depth3TF);
+                groups.get("transfer").forEach(k->routes.get(k).retainAll(dps));
+            } else {
+                setTransferRoutes(routes, groups);
+            }
+
+            //System.out.println("graph out line 280:"+busRouteFilterUtil.getGraph().getOutEdges());
+            //System.out.println("graph in line 281:"+busRouteFilterUtil.getGraph().getInEdges());
+            List<List<String>> d2Tod3 = busRouteFilterUtil.createPassList(depths.get(2),depths.get(3));
+            //System.out.println("d2Tod3 : "+d2Tod3);
+
         } else if (routeCase==2 || routeCase==3){
-            Set<String> dpars = new HashSet<>();
-            groups.get("departure").forEach(k->dpars.addAll(routes.get(k)));
-            groups.get("arrive").forEach(k->dpars.addAll(routes.get(k)));
-            groups.get("transfer").forEach(k->routes.get(k).retainAll(dpars));
+            setTransferRoutes(routes, groups);
             if(routeCase==2)
                 busRouteFilterUtil.createPassList(depths.get(2),groups.get("arrive"));
             else
@@ -277,6 +305,10 @@ public class BusFilterServiceImpl implements BusFilterService{
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
         RouteGraph graph = busRouteFilterUtil.getGraph();
+        // System.out.println("routes line 294: "+routes);
+        // System.out.println("groups line 295: "+groups);
+        // System.out.println("graph out:"+graph.getOutEdges());
+        // System.out.println("graph in:"+graph.getInEdges());
         for(String tk : groups.get("transfer")){
             int fanOut = graph.countFanOut(tk);
             //System.out.println("fanout_"+tk+":"+graph.findFanOutAdjNodes(tk));
@@ -300,11 +332,9 @@ public class BusFilterServiceImpl implements BusFilterService{
         if (group == null) return new ArrayList<>();
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         List<FilteredBusDTO> lists = new ArrayList<>();
-        System.out.println("group line 285 : " + group);
         Iterator<String> iterator = group.iterator();
         while(iterator.hasNext()){
             String k = iterator.next();
-            System.out.println("k line 289 : " + k);
             FilteredBusDTO dto = new FilteredBusDTO();
             String clusterName = clustersService.findByArsId(journeyNo,k);
             dto.setJourneyNo(journeyNo);
@@ -312,7 +342,6 @@ public class BusFilterServiceImpl implements BusFilterService{
             dto.setArsId(k);
             dto.setRoutes(routes.get(k).toArray(new String[0]));
             lists.add(dto);
-            //System.out.println(routes.get(k));
         }
         return lists;
     }

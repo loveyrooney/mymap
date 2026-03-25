@@ -160,7 +160,7 @@
 }
 
 .route_title {
-  width: 30vw;
+  width: 45vw;
   /*text-align: center;
   border: 2px solid #0056ff; */
   border-radius: 10px;
@@ -177,6 +177,11 @@
 }
 
 .route_title_stNm {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.route_title_nxtStn {
   font-size: 0.7rem;
 }
 

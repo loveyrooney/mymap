@@ -6,8 +6,8 @@ from config import settings
 from models.schemas import BusArrivalItem
 
 # bus routes filter
-BUS_KEYSET = {'arrmsg1','arrmsg2','busRouteAbrv','busRouteId','busType1','busType2','congestion1','congestion2','deTourAt','isLast1','isLast2','nxtStn','routeType','rtNm','stNm','staOrd','routeType'}
-GG_BUS_KEYSET = {'crowded1', 'crowded2','locatioinNo1','locationNo2', 'predictTime1','predictTime2','remainSeatCnt1','remainSeatCnt2','routeId','routeName','routeTypeCd', 'stationId'}
+BUS_KEYSET = { 'stNm', 'busRouteId', 'rtNm', 'busRouteAbrv', 'routeType', 'staOrd', 'isLast1', 'busType1', 'isLast2', 'busType2', 'arrmsg1', 'arrmsg2', 'nxtStn', 'deTourAt', 'congestion1', 'congestion2'}
+GG_BUS_KEYSET = {'crowded1', 'crowded2','locatioinNo1','locationNo2', 'predictTime1','predictTime2','remainSeatCnt1','remainSeatCnt2','routeDestName','routeId','routeName','routeTypeCd', 'stationId'}
 
 def bus_routes_filter(item: dict, routes: Set[str]) -> dict:
     print(f"hello busroutefilter : {item}, {routes}")
@@ -15,7 +15,7 @@ def bus_routes_filter(item: dict, routes: Set[str]) -> dict:
     if 'busRouteId' in item and item.get('busRouteId') in routes:
         return {k: item[k] for k in item if k in BUS_KEYSET}
     elif 'routeId' in item and str(item.get('routeId')) in routes:
-        if item.get('predictTime1') != None or item.get('predictTime2') != None:
+        if (item.get('predictTime1') != None or item.get('predictTime1') != '') or (item.get('predictTime2') != None or item.get('predictTime2') != ''):
             return {k: item[k] for k in item if k in GG_BUS_KEYSET}
     return {}
 

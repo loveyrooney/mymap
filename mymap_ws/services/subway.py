@@ -11,6 +11,7 @@ def subway_filter(item: dict) -> dict:
     # if 'updnLine' in item and item['updnLine'] == direction:
     #     return {k: item[k] for k in item if k in SUB_KEYSET}
     # return {}
+    print(f"hello, subway : {item}")
     return {k: item[k] for k in item if k in SUB_KEYSET}
 
 async def call_subway(st_name: str) -> List[Any]:
@@ -24,7 +25,7 @@ async def call_subway(st_name: str) -> List[Any]:
                 data = await response.json() 
                 itemLists = data.get("realtimeArrivalList",[])
                 print(f"api 받은 시각: {int(time.time() * 1000)}")
-                #print(f"itemLists===> {itemLists}")
+                #print(f"subway itemLists===> {itemLists}")
                 filtered = [subway_filter(item) for item in itemLists if subway_filter(item)]
                 filtered.sort(key=lambda item: (item["subwayId"], item["updnLine"]))
                 return filtered

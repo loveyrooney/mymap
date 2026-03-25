@@ -13,4 +13,7 @@ public interface BusRepository extends JpaRepository<Bus,Long> {
 
     @Query(value = " select * from near_bus_geoms(:lon,:lat) ",nativeQuery = true)
     Optional<List<Object[]>> getNearGeoms(Double lon, Double lat);
+
+    @Query(value = " select * from depth2_near_depth3(:d2id,:d3id) ",nativeQuery = true)
+    Optional<Boolean> depth2_near_depth3(String d2id, String d3id);
 }

@@ -423,7 +423,10 @@ let routeType = abstractGGBusRouteType(d.routeTypeCd);
       stNm.className = "route_title_stNm";
       let station = await callGGStNm(d.stationId);
       stNm.textContent = `${station}`;
-      title.append(lineNm, stNm);
+      let nxtNm = document.createElement("span");
+      nxtNm.className = "route_title_nxtStn";
+      nxtNm.textContent = `종착역 : ${d.routeDestName}`
+      title.append(lineNm, stNm, nxtNm);
       let div = document.createElement("div");
       div.className = "route_box";
       let r1 = document.createElement("span");
@@ -451,7 +454,10 @@ let routeType = abstractBusRouteType(d.routeType);
       let stNm = document.createElement("span");
       stNm.className = "route_title_stNm";
       stNm.textContent = `${d.stNm}`
-      title.append(lineNm, stNm);
+      let nxtNm = document.createElement("span");
+      nxtNm.className = "route_title_nxtStn";
+      nxtNm.textContent = `다음역 : ${d.nxtStn}`
+      title.append(lineNm, stNm, nxtNm);
       let div = document.createElement("div");
       div.className = "route_box";
       let r1 = document.createElement("span");

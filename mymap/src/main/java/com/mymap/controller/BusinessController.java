@@ -77,13 +77,13 @@ public class BusinessController {
         if(dto.getFromBus()!=null || dto.getTfBus()!=null || dto.getToBus()!=null){
             List<FilteredBusDTO> filteredBusDTOS = new ArrayList<>();
             if(dto.getFromBus()!=null && dto.getTfBus()!=null && dto.getToBus()!=null)
-                filteredBusDTOS = busFilterService.runBusFilter(dto,4);
+                filteredBusDTOS = busFilterService.runBusFilter(dto,4); //dp, tf, ar 모두 있으면 4
             else if(dto.getFromBus()!=null && dto.getToBus()!=null)
-                filteredBusDTOS = busFilterService.runBusFilter(dto,1);
+                filteredBusDTOS = busFilterService.runBusFilter(dto,1); //dp, ar이 있으면 1
             else if(dto.getFromBus()!=null && dto.getTfBus()!=null)
-                filteredBusDTOS = busFilterService.runBusFilter(dto,2);
+                filteredBusDTOS = busFilterService.runBusFilter(dto,2); //dp, tf가 있으면 2
             else if(dto.getTfBus()!=null && dto.getToBus()!=null)
-                filteredBusDTOS = busFilterService.runBusFilter(dto,3);
+                filteredBusDTOS = busFilterService.runBusFilter(dto,3); //tf, ar이 있으면 3
             else
                 return dto.getNo();
             clustersService.createFilteredBus(filteredBusDTOS);
