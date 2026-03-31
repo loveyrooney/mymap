@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name="bus")
@@ -29,4 +30,7 @@ public class Bus {
 
     @Column(name="station_name",nullable = false)
     private String stationName;
+
+    @Column(name="ud_time",nullable = false)
+    private ZonedDateTime udTime;
 }

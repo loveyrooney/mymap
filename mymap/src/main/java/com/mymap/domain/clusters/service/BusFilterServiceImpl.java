@@ -218,9 +218,9 @@ public class BusFilterServiceImpl implements BusFilterService{
             depths.get(2).forEach(k->depth2TF.addAll(routes.get(k)));
             depths.get(3).forEach(k->depth3TF.addAll(routes.get(k)));
 
-        //    System.out.println("=== d2, d3 ===");
-        //    System.out.println(depth2TF);
-        //    System.out.println(depth3TF);
+           System.out.println("=== d2, d3 ===");
+           System.out.println(depth2TF);
+           System.out.println(depth3TF);
         }
 
         // depth2 ~ arrive 경로 뽑기 - 이 과정에서 d2-d4 간선을 추가할 수 있다.
@@ -280,10 +280,10 @@ public class BusFilterServiceImpl implements BusFilterService{
                 setTransferRoutes(routes, groups);
             }
 
-            //System.out.println("graph out line 280:"+busRouteFilterUtil.getGraph().getOutEdges());
-            //System.out.println("graph in line 281:"+busRouteFilterUtil.getGraph().getInEdges());
+            System.out.println("graph out line 280:"+busRouteFilterUtil.getGraph().getOutEdges());
+            System.out.println("graph in line 281:"+busRouteFilterUtil.getGraph().getInEdges());
             List<List<String>> d2Tod3 = busRouteFilterUtil.createPassList(depths.get(2),depths.get(3));
-            //System.out.println("d2Tod3 : "+d2Tod3);
+            System.out.println("d2Tod3 : "+d2Tod3);
 
         } else if (routeCase==2 || routeCase==3){
             setTransferRoutes(routes, groups);
@@ -305,10 +305,10 @@ public class BusFilterServiceImpl implements BusFilterService{
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
         RouteGraph graph = busRouteFilterUtil.getGraph();
-        // System.out.println("routes line 294: "+routes);
-        // System.out.println("groups line 295: "+groups);
-        // System.out.println("graph out:"+graph.getOutEdges());
-        // System.out.println("graph in:"+graph.getInEdges());
+         System.out.println("routes line 294: "+routes);
+         System.out.println("groups line 295: "+groups);
+         System.out.println("graph out:"+graph.getOutEdges());
+         System.out.println("graph in:"+graph.getInEdges());
         for(String tk : groups.get("transfer")){
             int fanOut = graph.countFanOut(tk);
             //System.out.println("fanout_"+tk+":"+graph.findFanOutAdjNodes(tk));
