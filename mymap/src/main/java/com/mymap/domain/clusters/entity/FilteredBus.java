@@ -23,8 +23,8 @@ public class FilteredBus {
     @Column(name="cluster_name")
     private String clusterName;
 
-    @Column(name="ars_id")
-    private String arsId;
+    @Column(name="station_id")
+    private String stationId;
 
     @Column(name="routes")
     private String[] routes;

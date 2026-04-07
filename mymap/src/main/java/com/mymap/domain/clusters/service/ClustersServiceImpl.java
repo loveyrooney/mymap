@@ -250,7 +250,7 @@ public class ClustersServiceImpl implements ClustersService {
     @Transactional
     public void createFilteredBus(List<FilteredBusDTO> lists) {
         List<FilteredBus> entities = lists.stream()
-                .map(dto-> new FilteredBus(dto.getNo(),dto.getJourneyNo(),dto.getClusterName(),dto.getArsId(),dto.getRoutes()))
+                .map(dto-> new FilteredBus(dto.getNo(),dto.getJourneyNo(),dto.getClusterName(),dto.getStationId(),dto.getRoutes()))
                 .collect(Collectors.toList());
         filteredBusRepository.saveAll(entities);
         entityManager.flush();
@@ -281,7 +281,7 @@ public class ClustersServiceImpl implements ClustersService {
                 .orElseThrow(()->new BusinessException(ErrorCode.NOT_REGISTERED));
         return lists.stream()
                 .map(entity-> FilteredBusDTO.builder()
-                        .arsId(entity.getArsId())
+                        .stationId(entity.getStationId())
                         .clusterName(entity.getClusterName())
                         .routes(entity.getRoutes())
                         .build())

@@ -11,6 +11,6 @@ public class FilteredBusDTO {
     private long no;
     private long journeyNo;
     private String clusterName;
-    private String arsId;
+    private String stationId;
     private String[] routes;
 }

@@ -339,7 +339,7 @@ public class BusFilterServiceImpl implements BusFilterService{
             String clusterName = clustersService.findByArsId(journeyNo,k);
             dto.setJourneyNo(journeyNo);
             dto.setClusterName(clusterName);
-            dto.setArsId(k);
+            dto.setStationId(k);
             dto.setRoutes(routes.get(k).toArray(new String[0]));
             lists.add(dto);
         }
