@@ -173,11 +173,12 @@ categ_choose.addEventListener("click", async function () {
         current.lon
       );
     }
+    console.log("transfer", tfLists);
     tfSelect.replaceChildren();
     tfLists.forEach((tf) => {
       let op = document.createElement("option");
       op.textContent = `${tf.tfId}_${tf.stName}`;
-      op.setAttribute("value", `${tf.tfId}_${tf.stName}`);
+      tf.stId ? op.setAttribute("value", `${tf.stId}_${tf.stName}`) : op.setAttribute("value", `${tf.tfId}_${tf.stName}`);
       tfSelect.appendChild(op);
     });
   }

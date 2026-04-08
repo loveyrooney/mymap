@@ -9,5 +9,6 @@ import lombok.*;
 @Builder
 public class TransferDTO {
     String stName;
+    String stId;
     String tfId;
 }

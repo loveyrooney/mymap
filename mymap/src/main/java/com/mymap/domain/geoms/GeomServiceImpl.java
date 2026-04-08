@@ -47,7 +47,12 @@ public class GeomServiceImpl implements GeomService{
     private List<TransferDTO> mappingTransfer(List<Object[]> list){
         List<TransferDTO> resultList = new ArrayList<>();
         for(Object[] o : list){
-            TransferDTO d = TransferDTO.builder().tfId((String)o[0]).stName((String)o[1]).build();
+            TransferDTO d;
+            if(o.length == 3){
+                d = TransferDTO.builder().tfId((String)o[0]).stId((String)o[1]).stName((String)o[2]).build();
+            } else {
+                d = TransferDTO.builder().tfId((String)o[0]).stName((String)o[1]).build();
+            }
             resultList.add(d);
         }
         return resultList;
@@ -76,7 +81,7 @@ public class GeomServiceImpl implements GeomService{
                 mdto.setLat(String.valueOf(subs.getGeom().getY()));
                 mdto.setStid(subs.getSubwayId());
             } else if("bus".equals(dto.getGeomTable()) || "buses".equals(dto.getGeomTable())){
-                Bus bus = busRepository.findByArsId(dto.getClusterBus()[0])
+                Bus bus = busRepository.findByStationId(dto.getClusterBus()[0])
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
                 mdto.setGroup("tf");
                 mdto.setLon(String.valueOf(bus.getGeom().getX()));
@@ -130,8 +135,8 @@ public class GeomServiceImpl implements GeomService{
     }
 
     @Override
-    public String findBusStationName(String arsId){
-        Bus bus = busRepository.findByArsId(arsId)
+    public String findBusStationName(String stId){
+        Bus bus = busRepository.findByStationId(stId)
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
         return bus.getStationName();
     }

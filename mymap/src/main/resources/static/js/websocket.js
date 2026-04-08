@@ -236,9 +236,9 @@ async function fetchData() {
   }
 }
 
-async function callGGStNm(arsid) {
+async function callGGStNm(stId) {
   try {
-    const response = await fetch(`/api/bus_station/${arsid}`, {
+    const response = await fetch(`/api/bus_station/${stId}`, {
       method: "GET",
       credentials: "include",
       headers: {

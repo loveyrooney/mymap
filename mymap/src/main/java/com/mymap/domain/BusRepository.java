@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BusRepository extends JpaRepository<Bus,Long> {
-    @Query(" select b from Bus b where b.arsId = :arsId ")
-    Optional<Bus> findByArsId(String arsId);
+    @Query(" select b from Bus b where b.stationId = :stId ")
+    Optional<Bus> findByStationId(String stId);
 
     @Query(value = " select * from near_bus_geoms(:lon,:lat) ",nativeQuery = true)
     Optional<List<Object[]>> getNearGeoms(Double lon, Double lat);

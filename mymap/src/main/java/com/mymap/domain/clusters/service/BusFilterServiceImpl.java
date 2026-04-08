@@ -5,6 +5,7 @@ import com.mymap.domain.clusters.RouteGraph;
 import com.mymap.domain.clusters.BusRouteFilterUtil;
 import com.mymap.domain.clusters.dto.FilteredBusDTO;
 import com.mymap.domain.clusters.dto.JourneyDTO;
+import com.mymap.domain.clusters.cache.GlobalStationCache;
 import com.mymap.exception.BusinessException;
 import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
@@ -37,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BusFilterServiceImpl implements BusFilterService{
     private final ClustersService clustersService;
     private final BusRepository busRepository;
+    private final GlobalStationCache globalStationCache;
 
     @Value("${topis.key}")
     private String topisKey;
@@ -70,17 +72,32 @@ public class BusFilterServiceImpl implements BusFilterService{
         return lists;
     }
 
+    private List<String> getArsIds(String[] stIds){
+        List<String> arsIds = new ArrayList<>();
+        for(String stId : stIds){
+            String arsId = globalStationCache.getArsId(stId);
+            if (arsId == null) {
+                // 캐시에 없으면 DB에서 최후의 수단으로 조회 (또는 에러 처리)
+                arsId = busRepository.findByStationId(stId)
+                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST))
+                        .getArsId();
+            }
+            arsIds.add(arsId);
+        }
+        return arsIds;
+    }
+
     private Map<String,Set<String>> callRoutes(JourneyDTO journey){
         StringBuilder url = new StringBuilder();
         url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
         url.append("?serviceKey="+topisKey+"&arsId=");
         List<String> arsIds = new ArrayList<>();
         if(journey.getFromBus()!=null)
-            arsIds.addAll(Arrays.asList(journey.getFromBus()));
+            arsIds.addAll(getArsIds(journey.getFromBus())); 
         if(journey.getTfBus()!=null)
-            arsIds.addAll(Arrays.asList(journey.getTfBus()));
+            arsIds.addAll(getArsIds(journey.getTfBus()));    
         if(journey.getToBus()!=null)
-            arsIds.addAll(Arrays.asList(journey.getToBus()));
+            arsIds.addAll(getArsIds(journey.getToBus()));    
         Map<String,Set<String>> routes = new HashMap<>();
         for(String id : arsIds){
             try {
@@ -336,7 +353,7 @@ public class BusFilterServiceImpl implements BusFilterService{
         while(iterator.hasNext()){
             String k = iterator.next();
             FilteredBusDTO dto = new FilteredBusDTO();
-            String clusterName = clustersService.findByArsId(journeyNo,k);
+            String clusterName = clustersService.findByStId(journeyNo,k);
             dto.setJourneyNo(journeyNo);
             dto.setClusterName(clusterName);
             dto.setStationId(k);

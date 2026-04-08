@@ -136,9 +136,9 @@ public class BusinessController {
         return clustersService.convertToClusterMsg(clusterList,jno,(String)body.get("direction"));
     }
 
-    @GetMapping("/bus_station/{arsId}")
-    public String bus_station(@PathVariable String arsId){
-        return geomService.findBusStationName(arsId);
+    @GetMapping("/bus_station/{stId}")
+    public String bus_station(@PathVariable String stId){
+        return geomService.findBusStationName(stId);
     }
 
 }

@@ -15,7 +15,7 @@ public interface ClustersService {
     void createMarkerCluster(List<MarkerClusterDTO> lists);
     List<MarkerClusterDTO> abstractCluster(long journeyNo);
     void createFilteredBus(List<FilteredBusDTO> lists);
-    String findByArsId(long jno, String arsId);
+    String findByStId(long jno, String stId);
     List<JourneyDTO> findJourneyAllByUserNo(Long principal);
     Journey findJourneyByNo(Long journeyNo);
     List<FilteredBusDTO> findFilterBusByJno(long jno);

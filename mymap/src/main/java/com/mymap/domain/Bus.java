@@ -33,4 +33,7 @@ public class Bus {
 
     @Column(name="ud_time",nullable = false)
     private ZonedDateTime udTime;
+
+    @Column(name="station_id",nullable = false)
+    private String stationId;
 }
