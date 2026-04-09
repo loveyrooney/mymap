@@ -86,7 +86,7 @@ public class GeomServiceImpl implements GeomService{
                 mdto.setGroup("tf");
                 mdto.setLon(String.valueOf(bus.getGeom().getX()));
                 mdto.setLat(String.valueOf(bus.getGeom().getY()));
-                mdto.setStid(bus.getArsId());
+                mdto.setStid(bus.getStationId());
             } else if("bike".equals(dto.getGeomTable()) || "bikes".equals(dto.getGeomTable())){
                 Bike bike = bikeRepository.findByStId(dto.getClusterBike()[0])
                         .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));

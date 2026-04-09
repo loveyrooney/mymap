@@ -60,7 +60,7 @@ class busRouteFilter {
 	@Autowired
 	private ClustersService clustersService;
 
-	@Value("${topis-key}")
+	@Value("${topis.key}")
 	private String topisKey;
 
 	@Test
@@ -467,10 +467,10 @@ class busRouteFilter {
 	public FilteredBusDTO createFilteredBus(String k){
 		System.out.println("in func: "+k);
 		FilteredBusDTO dto = new FilteredBusDTO();
-		String clusterName = clustersService.findByArsId(1L,k);
+		String clusterName = clustersService.findByStId(1L,k);
 		dto.setJourneyNo(1L);
 		dto.setClusterName(clusterName);
-		dto.setArsId(k);
+		dto.setStationId(k);
 		dto.setRoutes(routes.get(k).toArray(new String[0]));
 		return dto;
 	}

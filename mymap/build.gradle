@@ -39,6 +39,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
 	implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
 	implementation 'org.json:json:20160810'
 	implementation 'org.seleniumhq.selenium:selenium-java:4.22.0'
@@ -52,4 +54,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	testLogging {
+		showStandardStreams = true
+	}
 }

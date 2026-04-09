@@ -12,8 +12,8 @@ public interface FilteredBusRepository extends JpaRepository<FilteredBus,Long> {
     @Query(" select f from FilteredBus f where f.journeyNo = :jno ")
     Optional<List<FilteredBus>> findByJno(@Param("jno") long jno);
 
-    @Query(" select f from FilteredBus f where f.journeyNo = :jno and f.stationId = :arsid and f.clusterName = :clusterName ")
-    Optional<FilteredBus> findByJnoAndArsIdAndClusterName(@Param("jno") long jno, @Param("arsid") String arsid, @Param("clusterName") String clusterName);
+    @Query(" select f from FilteredBus f where f.journeyNo = :jno and f.stationId = :stid and f.clusterName = :clusterName ")
+    Optional<FilteredBus> findByJnoAndStIdAndClusterName(@Param("jno") long jno, @Param("stid") String stid, @Param("clusterName") String clusterName);
 
     //@Query(" delete from FilteredBus f where f.journeyNo = :no ")
     void deleteAllByJourneyNo(long no);

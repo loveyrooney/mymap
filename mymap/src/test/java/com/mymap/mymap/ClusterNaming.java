@@ -202,7 +202,7 @@ public class ClusterNaming {
         List<FilteredBusDTO> filteredBusDTOS = busFilterService.runBusFilter(jdto,4);
         clustersService.createFilteredBus(filteredBusDTOS);
         for(FilteredBusDTO dto : filteredBusDTOS){
-            System.out.println(dto.getClusterName()+":"+dto.getArsId());
+            System.out.println(dto.getClusterName()+":"+dto.getStationId());
             if(dto.getRoutes()!=null){
                 for(String s : dto.getRoutes()){
                     System.out.printf("%s, ",s);

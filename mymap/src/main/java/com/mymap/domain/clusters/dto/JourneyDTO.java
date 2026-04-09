@@ -15,7 +15,7 @@ public class JourneyDTO {
     private String toName;
     private double[] fromGeoms;
     private double[] toGeoms;
-    // bus 는 arsId
+    // bus 는 stationId
     private String[] fromBus;
     private String[] tfBus;
     private String[] toBus;

@@ -311,10 +311,10 @@ public class ClustersServiceImpl implements ClustersService {
             msg.setClusterName(dto.getClusterName());
             if(dto.getClusterBus()!=null){
                 Map<String,String[]> busMap = new HashMap<>();
-                for(String arsid : dto.getClusterBus()){
-                    FilteredBus filteredBus = filteredBusRepository.findByJnoAndArsIdAndClusterName(jno,arsid,dto.getClusterName())
+                for(String stid : dto.getClusterBus()){
+                    FilteredBus filteredBus = filteredBusRepository.findByJnoAndStIdAndClusterName(jno,stid,dto.getClusterName())
                             .orElseThrow(()-> new BusinessException(ErrorCode.NOT_EXIST));
-                    busMap.putIfAbsent(arsid, filteredBus.getRoutes());
+                    busMap.putIfAbsent(stid, filteredBus.getRoutes());
                 }
                 msg.setBus(busMap);
             }

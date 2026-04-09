@@ -19,7 +19,7 @@ public interface MarkerClusterRepository extends JpaRepository<MarkerCluster,Lon
             " and (:id = any(m.cluster_bike) " +
             " or :id = any(m.cluster_bus)" +
             " or :id = any(m.cluster_sub))",nativeQuery = true)
-    Optional<String> findClusterNameByJno(@Param("jno") long jno, @Param("id") String arsId);
+    Optional<String> findClusterNameByJno(@Param("jno") long jno, @Param("id") String stId);
 
     //@Query(" delete from MarkerCluster m where m.journeyNo = :no ")
     void deleteAllByJourneyNo(long no);

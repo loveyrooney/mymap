@@ -11,6 +11,10 @@ import com.mymap.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -72,62 +76,75 @@ public class BusFilterServiceImpl implements BusFilterService{
         return lists;
     }
 
-    private List<String> getArsIds(String[] stIds){
-        List<String> arsIds = new ArrayList<>();
+    private HashMap<String,String> getArsIdsFromGlobalCache(String[] stIds){
+        HashMap<String,String> stIdToArsIds = new HashMap<>();
         for(String stId : stIds){
             String arsId = globalStationCache.getArsId(stId);
-            if (arsId == null) {
-                // 캐시에 없으면 DB에서 최후의 수단으로 조회 (또는 에러 처리)
-                arsId = busRepository.findByStationId(stId)
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST))
-                        .getArsId();
-            }
-            arsIds.add(arsId);
+            stIdToArsIds.put(stId,arsId);
         }
-        return arsIds;
+        return stIdToArsIds;
+    }
+
+    private Set<String> getRouteIdsFromAPI(String stId, String arsId, boolean isSeoul) throws Exception{
+        StringBuilder url = new StringBuilder();
+        if(isSeoul){
+            url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
+            url.append("?serviceKey="+topisKey+"&arsId="+arsId);
+        } else {
+            url.append("https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2");
+            url.append("?serviceKey="+topisKey+"&stationId="+stId+"&format=json");
+        }
+        URL realurl = new URL(url.toString());
+        HttpURLConnection conn = (HttpURLConnection) realurl.openConnection();
+        conn.setConnectTimeout(3000); 
+        conn.setReadTimeout(5000);
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+        String response = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)).readLine();
+        //System.out.println("response: "+response);
+        JSONObject jsonObject = isSeoul ? XML.toJSONObject(response) : new JSONObject(response);
+        String jsonPrettyPrintString = jsonObject.toString(4);
+        System.out.println("JSON Response:\n" + jsonPrettyPrintString);
+        JSONObject msgBody = jsonObject.getJSONObject(isSeoul ? "ServiceResult" : "response").getJSONObject("msgBody");
+        JSONArray busArrivalList = msgBody.optJSONArray("busArrivalList");
+        if(busArrivalList==null){
+            busArrivalList = new JSONArray();
+            busArrivalList.put(msgBody.getJSONObject("busArrivalList"));
+        }
+        //System.out.println("busArrivalList: " + busArrivalList);
+        Set<String> busRouteIds = new HashSet<>();
+        for (int i = 0; i < busArrivalList.length(); i++) {
+            String routeId = Integer.toString(busArrivalList.getJSONObject(i).getInt(isSeoul ? "busRouteId" : "routeId")); 
+            busRouteIds.add(routeId);
+        }
+        return busRouteIds;
     }
 
     private Map<String,Set<String>> callRoutes(JourneyDTO journey){
-        StringBuilder url = new StringBuilder();
-        url.append("http://ws.bus.go.kr/api/rest/stationinfo/getRouteByStation");
-        url.append("?serviceKey="+topisKey+"&arsId=");
-        List<String> arsIds = new ArrayList<>();
+        // cache 에서 stid : arsid 가져오기 
+        HashMap<String,String> stToArs = new HashMap<>();
         if(journey.getFromBus()!=null)
-            arsIds.addAll(getArsIds(journey.getFromBus())); 
+            stToArs.putAll(getArsIdsFromGlobalCache(journey.getFromBus())); 
         if(journey.getTfBus()!=null)
-            arsIds.addAll(getArsIds(journey.getTfBus()));    
+            stToArs.putAll(getArsIdsFromGlobalCache(journey.getTfBus()));    
         if(journey.getToBus()!=null)
-            arsIds.addAll(getArsIds(journey.getToBus()));    
+            stToArs.putAll(getArsIdsFromGlobalCache(journey.getToBus()));    
         Map<String,Set<String>> routes = new HashMap<>();
-        for(String id : arsIds){
-            try {
-                // api call
-                URL realurl = new URL(url+id);
-                HttpURLConnection conn = (HttpURLConnection) realurl.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setRequestProperty("Content-type", "application/json");
-                String response = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)).readLine();
-                //System.out.println(response);
-                // response to document
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                InputSource inputSource = new InputSource(new StringReader(response));
-                Document document = builder.parse(inputSource);
-                // 특정 xml 태그 abstract
-                XPath xpath = XPathFactory.newInstance().newXPath();
-                //System.out.println("bus filter call line 99: "+ document.getTextContent());
-                XPathExpression expr = xpath.compile("//itemList/busRouteId");
-                NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-                Set<String> busRouteIds = new HashSet<>();
-                for (int i = 0; i < nodes.getLength(); i++) {
-                    String routeId = nodes.item(i).getTextContent();
-                    busRouteIds.add(routeId);
-                    //System.out.println(id+","+routeId);
-                }
-                routes.putIfAbsent(id,busRouteIds);
+        for(String stid : stToArs.keySet()){
+            boolean isSeoul = stid.charAt(0)=='1';
+            try { // stid가 1로 시작하면 서울, 아니면 경기에 first try 
+                Set<String> busRouteIds = getRouteIdsFromAPI(stid, stToArs.get(stid), isSeoul);
+                log.info("stid, busRouteIds: {}, {}",stid,busRouteIds);
+                routes.putIfAbsent(stid,busRouteIds);
             } catch (Exception e){
-                log.error("BusFilter call API Error: ",e);
-                throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
+                try{ // call 대상을 바꿔서 retry 
+                    Set<String> busRouteIds = getRouteIdsFromAPI(stid, stToArs.get(stid), !isSeoul);
+                    log.info("retry stid, busRouteIds: {}, {}",stid,busRouteIds);
+                    routes.putIfAbsent(stid,busRouteIds);
+                } catch (Exception e2){
+                    log.error("BusFilter Retry Call API Error: ", e2);
+                    throw new BusinessException(ErrorCode.JOURNEY_INSERT_FAILED);
+                }
             }
         }
         return routes;
