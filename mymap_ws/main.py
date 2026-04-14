@@ -1,5 +1,6 @@
 import time
 import asyncio
+import aiohttp
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -41,51 +42,52 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_json({"msg": f"Hello ${user_id}, webSocket connected"})
                 authenticated = True
 
-        while True:
-            try:
-                # Wait for data with timeout
-                data = await asyncio.wait_for(websocket.receive_json(), timeout=SESSION_TIMEOUT)
-                #last_activity = time.time()
-                print(f"받은 메시지: {data}, 받은 시각: {int(time.time() * 1000)}")
-                
-                # data를 큐에 넣고 호출하는 구조로 만들어야 됨.
-                cluster_name = data.get('clusterName')
-                
-                if "bus" in data:
-                    bus_data = data['bus'] # Dict[arsId, List[routes]]
-                    for arsId, routes in bus_data.items():
-                        # data 중 중복 arsid 요청이 있으면 캐시에서 가져오는 구조로 만들어야 됨. 그렇지 않으면 call_bus 실행
-                        bus_result = await call_bus(arsId, set(routes))
-                        print(f"콜버스 결과: {bus_result}, , 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({
-                            'bus': bus_result, 
-                            'clusterName': cluster_name
-                        })
+        async with aiohttp.ClientSession() as session:
+            while True:
+                try:
+                    # Wait for data with timeout
+                    data = await asyncio.wait_for(websocket.receive_json(), timeout=SESSION_TIMEOUT)
+                    #last_activity = time.time()
+                    print(f"받은 메시지: {data}, 받은 시각: {int(time.time() * 1000)}")
+                    
+                    # data를 큐에 넣고 호출하는 구조로 만들어야 됨.
+                    cluster_name = data.get('clusterName')
+                    
+                    if "bus" in data:
+                        bus_data = data['bus'] # Dict[arsId, List[routes]]
+                        for stId, routes in bus_data.items():
+                            # data 중 중복 stid 요청이 있으면 캐시에서 가져오는 구조로 만들어야 됨. 그렇지 않으면 call_bus 실행
+                            bus_result = await call_bus(session, stId, set(routes))
+                            print(f"콜버스 결과: {bus_result}, , 받은 시각: {int(time.time() * 1000)}")
+                            await websocket.send_json({
+                                'bus': bus_result, 
+                                'clusterName': cluster_name
+                            })
 
-                if "sub" in data:
-                    sub_list = data['sub'] # List[stationName]
-                    for station in sub_list:
-                        sub_result = await call_subway(station)
-                        print(f"콜섭 결과: {sub_result}, 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({
-                            'sub': sub_result, 
-                            'clusterName': cluster_name
-                        })
+                    if "sub" in data:
+                        sub_list = data['sub'] # List[stationName]
+                        for station in sub_list:
+                            sub_result = await call_subway(session, station)
+                            print(f"콜섭 결과: {sub_result}, 받은 시각: {int(time.time() * 1000)}")
+                            await websocket.send_json({
+                                'sub': sub_result, 
+                                'clusterName': cluster_name
+                            })
 
-                if "bike" in data:
-                    bike_list = data['bike'] # List[stationName]
-                    for station in bike_list:
-                        bike_result = await call_bike(station)
-                        print(f"콜바이크 결과: {bike_result}, 받은 시각: {int(time.time() * 1000)}")
-                        await websocket.send_json({
-                            'bike': bike_result, 
-                            'clusterName': cluster_name
-                        })
+                    if "bike" in data:
+                        bike_list = data['bike'] # List[stationName]
+                        for station in bike_list:
+                            bike_result = await call_bike(session, station)
+                            print(f"콜바이크 결과: {bike_result}, 받은 시각: {int(time.time() * 1000)}")
+                            await websocket.send_json({
+                                'bike': bike_result, 
+                                'clusterName': cluster_name
+                            })
 
-            except asyncio.TimeoutError:
-                await websocket.send_json({"msg": "세션이 만료되었습니다."})
-                await websocket.close()
-                break
+                except asyncio.TimeoutError:
+                    await websocket.send_json({"msg": "세션이 만료되었습니다."})
+                    await websocket.close()
+                    break
                 
     except WebSocketDisconnect:
         print("클라이언트 클로즈 (정상 종료)")
