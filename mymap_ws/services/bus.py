@@ -4,13 +4,14 @@ import time
 from typing import List, Set, Dict, Any
 from config import settings
 from models.schemas import BusArrivalItem
+from services.redis_service import redis_cache
 
 # bus routes filter
 BUS_KEYSET = { 'stNm', 'busRouteId', 'rtNm', 'busRouteAbrv', 'routeType', 'staOrd', 'isLast1', 'busType1', 'isLast2', 'busType2', 'arrmsg1', 'arrmsg2', 'nxtStn', 'deTourAt', 'congestion1', 'congestion2'}
 GG_BUS_KEYSET = {'crowded1', 'crowded2','locatioinNo1','locationNo2', 'predictTime1','predictTime2','remainSeatCnt1','remainSeatCnt2','routeDestName','routeId','routeName','routeTypeCd', 'stationId'}
 
 def bus_routes_filter(item: dict, routes: Set[str]) -> dict:
-    print(f"hello busroutefilter : {item}, {routes}")
+    #print(f"hello busroutefilter : {item}, {routes}")
     #if 'busRouteAbrv' in item and item['busRouteAbrv'] in routes:
     if 'busRouteId' in item and item.get('busRouteId') in routes:
         return {k: item[k] for k in item if k in BUS_KEYSET}
@@ -21,26 +22,24 @@ def bus_routes_filter(item: dict, routes: Set[str]) -> dict:
 
 async def get_bus_arrivals_from_api(session, api_key, stId, is_seoul, routes):
     if is_seoul:
-        # 여기서 redis_service 에서 stId 를 이용해서 arsId 를 가져와야 됨.
-        arsId = redis_service.get(stId)
+        # 여기서 redis_cache 에서 stId 를 이용해서 arsId 를 가져와야 됨.
+        arsId = redis_cache.get_ars_id(stId)
+        print(f"arsId===> {arsId}")
         url = f"http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid?serviceKey={api_key}&arsId={arsId}"
-        root_key, list_key, keyset = "ServiceResult", "itemList", BUS_KEYSET
+        root_key, list_key, keyset, api_name = "ServiceResult", "itemList", BUS_KEYSET, "Seoul"
     else:
         url = f"https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2?serviceKey={api_key}&stationId={stId}&format=json"
-        root_key, list_key, keyset = "response", "busArrivalList", GG_BUS_KEYSET
-
-    list_key = "busArrivalList"
+        root_key, list_key, keyset, api_name = "response", "busArrivalList", GG_BUS_KEYSET, "Gyeonggi"
     async with session.get(url) as response:
         if response.status != 200:
-            api_name = "Seoul" if is_seoul else "Gyeonggi"
             raise Exception(f"{api_name} API Error: {response.status}")
             
         parsed_data = xmltodict.parse(await response.text()) if is_seoul else await response.json()
-            
+        print(f"parsed_data===> {parsed_data}")    
         msg_body = parsed_data.get(root_key, {}).get("msgBody")
         # API 키 에러 등 비정상 상황 시 msgBody가 빈 문자열("")이나 None으로 올 수 있음
         if not isinstance(msg_body, dict):
-            return []
+            raise Exception(f"{api_name} API msg_body is not dict")
             
         item_lists = msg_body.get(list_key, [])
         

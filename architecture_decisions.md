@@ -7,3 +7,7 @@
 ## 2. Denormalization in `station_order` Table
 - **Justification**: Users and map APIs interface strictly via `arsid`. The `station_order` table exists primarily to calculate opposite-direction "pair stations" (which physically reside on opposite sides of the street and possess entirely distinct `arsid`s).
 - **Constraint**: `(route_id, arsid)` isolates a specific physical geography. Importantly, a route *can* visit the identical `arsid` twice within the exact same direction (e.g., looping back on an upstream path). However, a single route will **never** traverse both a Seoul `10195` and a Gyeonggi `10195`. Thus, `arsid` safely and uniquely resolves to a single physical station within the operational scope of any given `route_id`.
+
+## 3. Collaboration & Context Sharing Principle
+- **Absolute Transparency**: Every background action or system state change (e.g., executing terminal commands, flushing databases, modifying configurations) MUST be explicitly disclosed to the user.
+- **Context Synchronization**: Never silently alter the system state. All changes must be communicated clearly to prevent logical contradictions and ensure the user and the assistant maintain the exact same context throughout collaboration.

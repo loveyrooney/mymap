@@ -5,7 +5,7 @@ import com.mymap.domain.BusRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,25 +16,30 @@ import java.util.List;
 public class GlobalStationCache {
 
     private final BusRepository busRepository;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     private static final String STATION_MAP_KEY = "station:mapping";
 
-    // @PostConstruct
-    // public void init() {
-    //     log.info("🚀 Warming up Redis Station Cache...");
-    //     List<Bus> allBuses = busRepository.findAll();
+    @PostConstruct
+    public void init() {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(STATION_MAP_KEY))) {
+            log.info("✅ Redis Station Cache already exists. Skipping DB query.");
+            return;
+        }
+
+        log.info("🚀 Warming up Redis Station Cache...");
+        List<Bus> allBuses = busRepository.findAll();
         
-    //     // 역방향 매핑도 필요할 수 있으므로 station_id -> ars_id 저장
-    //     // Redis Hash 구조를 사용하여 효율적으로 관리합니다.
-    //     allBuses.forEach(bus -> {
-    //         if (bus.getStationId() != null && bus.getArsId() != null) {
-    //             redisTemplate.opsForHash().put(STATION_MAP_KEY, bus.getStationId(), bus.getArsId());
-    //         }
-    //     });
+        // 역방향 매핑도 필요할 수 있으므로 station_id -> ars_id 저장
+        // Redis Hash 구조를 사용하여 효율적으로 관리합니다.
+        allBuses.forEach(bus -> {
+            if (bus.getStationId() != null && bus.getArsId() != null) {
+                redisTemplate.opsForHash().put(STATION_MAP_KEY, bus.getStationId(), bus.getArsId());
+            }
+        });
         
-    //     log.info("✅ {} filtered station mappings loaded into Redis.", allBuses.size());
-    // }
+        log.info("✅ {} filtered station mappings loaded into Redis.", allBuses.size());
+    }
 
     /**
      * station_id를 입력받아 arsid를 반환합니다.

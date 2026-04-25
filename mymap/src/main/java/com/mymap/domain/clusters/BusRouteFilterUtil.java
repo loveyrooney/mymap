@@ -7,33 +7,46 @@ import lombok.Setter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.mymap.domain.BusRepository;
+
 @Getter @Setter
-@NoArgsConstructor
 public class BusRouteFilterUtil {
     Map<String,Set<String>> routes = new ConcurrentHashMap<>();
     Map<String, Set<String>> groups = new ConcurrentHashMap<>();
     Map<Integer,Set<String>> depths = new ConcurrentHashMap<>();
     RouteGraph graph = new RouteGraph();
+    Set<String> validDepth2Routes = new HashSet<>();
+    Set<String> validDepth3Routes = new HashSet<>();
+    private final BusRepository busRepository;
+
+    public BusRouteFilterUtil(BusRepository busRepository) {
+        this.busRepository = busRepository;
+    }
 
     public void reset() {
         routes.clear();
         groups.clear();
         depths.clear();
         graph = new RouteGraph();
+        validDepth2Routes.clear();
+        validDepth3Routes.clear();
     }
 
     public List<List<String>> edgeSearch(Set<String> dp, Set<String> ar, String dk, String ak){
         List<List<String>> freepath = new ArrayList<>();
+        if (dp == null || ar == null) return freepath;
         for(String route : dp){
-            List<String> pass = new ArrayList<>();
             if(ar.contains(route)){
-                pass.add(route);
-                pass.add(dk);
-                pass.add(ak);
-                graph.addEdge(dk,ak);
-            }
-            if(pass.size()>0){
-                freepath.add(pass);
+                Integer startSeq = busRepository.getSeq(dk, route).orElse(null);
+                Integer endSeq = busRepository.getSeq(ak, route).orElse(null);
+                if (startSeq != null && endSeq != null && endSeq > startSeq && (endSeq - startSeq) < 40) {
+                    List<String> pass = new ArrayList<>();
+                    pass.add(route);
+                    pass.add(dk);
+                    pass.add(ak);
+                    graph.addEdge(dk,ak);
+                    freepath.add(pass);
+                }
             }
         }
         return freepath;

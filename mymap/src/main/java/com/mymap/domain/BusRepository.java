@@ -14,6 +14,12 @@ public interface BusRepository extends JpaRepository<Bus,Long> {
     @Query(value = " select * from near_bus_geoms(:lon,:lat) ",nativeQuery = true)
     Optional<List<Object[]>> getNearGeoms(Double lon, Double lat);
 
-    @Query(value = " select * from depth2_near_depth3(:d2id,:d3id) ",nativeQuery = true)
-    Optional<Boolean> depth2_near_depth3(String d2id, String d3id);
+    @Query(value = " select * from orphan_near_depth(:orpid,:depthid) ",nativeQuery = true)
+    Optional<Boolean> orphan_near_depth(String orpid, String depthid);
+
+    @Query(value = "SELECT ABS(s2.sta_ord - s1.sta_ord) FROM station_order s1 JOIN station_order s2 ON s1.route_id = s2.route_id WHERE s1.station_id = :startSt AND s2.station_id = :endSt AND s1.route_id = :routeId LIMIT 1", nativeQuery = true)
+    Optional<Integer> findSeqDiff(String startSt, String endSt, String routeId);
+
+    @Query(value = "SELECT sta_ord FROM station_order WHERE station_id = :stId AND route_id = :routeId LIMIT 1", nativeQuery = true)
+    Optional<Integer> getSeq(String stId, String routeId);
 }

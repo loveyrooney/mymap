@@ -2,3 +2,4 @@
 .vscode/
 **/.gitignore
 mymap_app/
+docker-compose.yml
