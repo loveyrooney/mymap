@@ -170,6 +170,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                     if (fromBuses != null) {
                         for(String dk : fromBuses){
                             List<List<String>> depth2Filter = busRouteFilterUtil.edgeSearch(routes.get(dk), routes.get(tk), dk, tk);
+                            System.out.println("d2 create line 173: "+depth2Filter);
                             if(depth2Filter.size()>0){
                                 depth2.add(tk);
                                 isD2 = true;
@@ -183,6 +184,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                             if (toBuses != null) {
                                 for (String ak : toBuses) {
                                     List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(tk), routes.get(ak), tk, ak);
+                                    System.out.println("d3 create line 187: "+depth3Filter);
                                     if (depth3Filter.size()>0) {
                                         depth3.add(tk);
                                         isD3 = true;
@@ -201,6 +203,7 @@ public class BusFilterServiceImpl implements BusFilterService{
                     if (toBuses != null) {
                         for(String ak : toBuses){
                             List<List<String>> depth3Filter = busRouteFilterUtil.edgeSearch(routes.get(tk), routes.get(ak), tk, ak);
+                            System.out.println("d3 create line 209: "+depth3Filter);
                             if(depth3Filter.size()>0){
                                 depth3.add(tk);
                                 isD3 = true;
@@ -242,8 +245,8 @@ public class BusFilterServiceImpl implements BusFilterService{
         depths.put(2,depth2);
         depths.put(3,depth3);
         busRouteFilterUtil.setDepths(depths);
-        // System.out.println("d2:"+depth2);
-        // System.out.println("d3:"+depth3);
+         System.out.println("d2:"+depth2);
+         System.out.println("d3:"+depth3);
     }
 
     private Map<String, Set<String>> settingGroup(JourneyDTO journey, int routeCase, BusRouteFilterUtil busRouteFilterUtil){
@@ -305,6 +308,8 @@ public class BusFilterServiceImpl implements BusFilterService{
         List<List<String>> d2arpass = new ArrayList<>();
         if(routeCase==4)
             d2arpass = busRouteFilterUtil.createPassList(depths.get(2),groups.get("arrive"));
+        System.out.println("d2arpass create line 309: "+d2arpass);
+        System.out.println("routes before filter:"+routes);
 
         // 출발지 필터링
         if(routeCase==1)
@@ -421,17 +426,25 @@ public class BusFilterServiceImpl implements BusFilterService{
             System.out.println("isConnect :"+isConnect);
 
         } else if (routeCase==2 || routeCase==3){
-            setTransferRoutes(routes, groups);
-            if(routeCase==2)
-                busRouteFilterUtil.createPassList(depths.get(2),groups.get("arrive"));
-            else
-                busRouteFilterUtil.createPassList(depths.get(3),groups.get("arrive"));
+            setTransferRoutes(routes, groups);  
+            if(routeCase==2){
+                List<List<String>> pass_2 = busRouteFilterUtil.createPassList(depths.get(2),groups.get("arrive"));
+                System.out.println("case2_d2arpass: "+pass_2);    
+            }
+            else{
+                List<List<String>> pass_3 = busRouteFilterUtil.createPassList(depths.get(3),groups.get("arrive"));
+                System.out.println("case3_d3arpass: "+pass_3);
+            }
+            
         }
 
         // 프리패스 및 d2패스 추가
-        busRouteFilterUtil.addPass(freePaths);
-        if(routeCase==4)
-            busRouteFilterUtil.addPass(d2arpass);
+        List<Set<String>> freeadd = busRouteFilterUtil.addPass(freePaths);
+        System.out.println("freeadd:"+freeadd);
+        if(routeCase==4){
+            List<Set<String>> d2add = busRouteFilterUtil.addPass(d2arpass);
+            System.out.println("d2add:"+d2add);
+        }
     }
 
     private void sortFilteredRoutes(BusRouteFilterUtil busRouteFilterUtil){
@@ -440,7 +453,7 @@ public class BusFilterServiceImpl implements BusFilterService{
         Map<String, Set<String>> routes = busRouteFilterUtil.getRoutes();
         Map<String, Set<String>> groups = busRouteFilterUtil.getGroups();
         RouteGraph graph = busRouteFilterUtil.getGraph();
-         System.out.println("routes line 294: "+routes);
+         System.out.println("routes after filter: "+routes);
          System.out.println("groups line 295: "+groups);
          System.out.println("graph out:"+graph.getOutEdges());
          System.out.println("graph in:"+graph.getInEdges());

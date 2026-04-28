@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.mymap.domain.BusRepository;
+import com.mymap.domain.Bus;
 
 @Getter @Setter
 public class BusRouteFilterUtil {
@@ -32,6 +33,19 @@ public class BusRouteFilterUtil {
         validDepth3Routes.clear();
     }
 
+    public double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371e3; // metres
+        double phi1 = Math.toRadians(lat1);
+        double phi2 = Math.toRadians(lat2);
+        double deltaPhi = Math.toRadians(lat2 - lat1);
+        double deltaLambda = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; 
+    }
+
     public List<List<String>> edgeSearch(Set<String> dp, Set<String> ar, String dk, String ak){
         List<List<String>> freepath = new ArrayList<>();
         if (dp == null || ar == null) return freepath;
@@ -39,13 +53,58 @@ public class BusRouteFilterUtil {
             if(ar.contains(route)){
                 Integer startSeq = busRepository.getSeq(dk, route).orElse(null);
                 Integer endSeq = busRepository.getSeq(ak, route).orElse(null);
-                if (startSeq != null && endSeq != null && endSeq > startSeq && (endSeq - startSeq) < 40) {
-                    List<String> pass = new ArrayList<>();
-                    pass.add(route);
-                    pass.add(dk);
-                    pass.add(ak);
-                    graph.addEdge(dk,ak);
-                    freepath.add(pass);
+                
+                if (startSeq != null && endSeq != null && endSeq > startSeq) {
+                    int edgeLength = endSeq - startSeq;
+                    Bus startBus = busRepository.findByStationId(dk).orElse(null);
+                    Bus endBus = busRepository.findByStationId(ak).orElse(null);
+                    
+                    if (startBus != null && endBus != null) {
+                        double straightLength = calculateDistance(
+                            startBus.getGeom().getY(), startBus.getGeom().getX(),
+                            endBus.getGeom().getY(), endBus.getGeom().getX()
+                        );
+                        double standardLength = edgeLength * 500.0;
+                        
+                        boolean isValid = true;
+                        
+                        if (standardLength > straightLength) {
+                            List<Object[]> nearNodes = busRepository.getNearGeoms(startBus.getGeom().getX(), startBus.getGeom().getY()).orElse(null);
+                            boolean hasLoopPair = false;
+                            
+                            if (nearNodes != null && !nearNodes.isEmpty()) {
+                                for (Object[] node : nearNodes) {
+                                    if (node.length >= 3) {
+                                        String pairStId = (String) node[1];
+                                        if (pairStId.equals(dk)) continue;
+                                        
+                                        Integer pairSeq = busRepository.getSeq(pairStId, route).orElse(null);
+                                        if (pairSeq != null && pairSeq > startSeq && pairSeq < endSeq) {
+                                            if (pairSeq - startSeq >= 3) {
+                                                hasLoopPair = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (hasLoopPair) {
+                                isValid = false;
+                            } else if ((standardLength - straightLength) > 5000.0) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (isValid) {
+                            List<String> pass = new ArrayList<>();
+                            pass.add(route);
+                            pass.add(dk);
+                            pass.add(ak);
+                            graph.addEdge(dk,ak);
+                            freepath.add(pass);
+                        }
+                    }
                 }
             }
         }
@@ -73,7 +132,7 @@ public class BusRouteFilterUtil {
                     set.add(pass.get(0));
                     return set;
                 });
-                sortedList.add(routes.get(i));
+                sortedList.add(routes.get(pass.get(i)));
             }
         });
         return sortedList;
