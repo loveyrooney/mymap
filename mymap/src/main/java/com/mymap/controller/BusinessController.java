@@ -137,8 +137,8 @@ public class BusinessController {
     }
 
     @GetMapping("/bus_station/{stId}")
-    public String bus_station(@PathVariable String stId){
-        return geomService.findBusStationName(stId);
+    public Map<String, String> bus_station(@PathVariable String stId, @RequestParam String routeId, @RequestParam Integer staOrder){
+        return geomService.findBusStationNames(stId, routeId, staOrder);
     }
 
 }

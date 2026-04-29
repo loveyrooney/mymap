@@ -16,7 +16,9 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -135,9 +137,18 @@ public class GeomServiceImpl implements GeomService{
     }
 
     @Override
-    public String findBusStationName(String stId){
-        Bus bus = busRepository.findByStationId(stId)
-                        .orElseThrow(()->new BusinessException(ErrorCode.NOT_EXIST));
-        return bus.getStationName();
+    public Map<String, String> findBusStationNames(String stId, String routeId, Integer staOrder) {
+        List<Object[]> results = busRepository.findStationNames(stId, routeId, staOrder);
+        
+        if (results.isEmpty()) {
+            throw new BusinessException(ErrorCode.NOT_EXIST);
+        }
+        
+        Object[] result = results.get(0);
+        Map<String, String> resultMap = new HashMap<>();
+        resultMap.put("currentSt", String.valueOf(result[0]));
+        resultMap.put("nextSt", result[1] != null ? String.valueOf(result[1]) : "데이터 없음");
+        
+        return resultMap;
     }
 }

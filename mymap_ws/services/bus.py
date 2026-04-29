@@ -8,7 +8,7 @@ from services.redis_service import redis_cache
 
 # bus routes filter
 BUS_KEYSET = { 'stNm', 'busRouteId', 'rtNm', 'busRouteAbrv', 'routeType', 'staOrd', 'isLast1', 'busType1', 'isLast2', 'busType2', 'arrmsg1', 'arrmsg2', 'nxtStn', 'deTourAt', 'congestion1', 'congestion2'}
-GG_BUS_KEYSET = {'crowded1', 'crowded2','locatioinNo1','locationNo2', 'predictTime1','predictTime2','remainSeatCnt1','remainSeatCnt2','routeDestName','routeId','routeName','routeTypeCd', 'stationId'}
+GG_BUS_KEYSET = {'crowded1', 'crowded2','locatioinNo1','locationNo2', 'predictTime1','predictTime2','remainSeatCnt1','remainSeatCnt2','routeDestName','routeId','routeName','routeTypeCd', 'staOrder','stationId'}
 
 def bus_routes_filter(item: dict, routes: Set[str]) -> dict:
     #print(f"hello busroutefilter : {item}, {routes}")

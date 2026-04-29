@@ -236,23 +236,22 @@ async function fetchData() {
   }
 }
 
-async function callGGStNm(stId) {
-  try {
-    const response = await fetch(`/api/bus_station/${stId}`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    });
-    const data = await response.text();
-    if (!response.ok) throw Error(data.error || data.msg || "bus_station failed");
-    return data;
-  } catch (error) {
-    console.log("bus_station error:", error);
-    return null;
-  }
+async function callGGStNm(stId, routeId, staOrder) {
+    try {
+      const response = await fetch(`/api/bus_station/${stId}?routeId=${routeId}&staOrder=${staOrder}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("callGGStNm error:", error);
+      return null;
+    }
 }
 
 function removeNulls(obj) {
@@ -421,11 +420,19 @@ let routeType = abstractGGBusRouteType(d.routeTypeCd);
       lineNm.textContent = `${d.routeName}`;
       let stNm = document.createElement("span");
       stNm.className = "route_title_stNm";
-      let station = await callGGStNm(d.stationId);
-      stNm.textContent = `${station}`;
       let nxtNm = document.createElement("span");
       nxtNm.className = "route_title_nxtStn";
       nxtNm.textContent = `종착역 : ${d.routeDestName}`
+
+      callGGStNm(d.stationId, d.routeId, d.staOrder).then(data => {
+        if(data) {
+          stNm.textContent = data.currentSt;
+          if (data.nextSt !== '데이터 없음') {
+            nxtNm.textContent = `다음역 : ${data.nextSt}`;
+          }
+        }
+      });
+
       title.append(lineNm, stNm, nxtNm);
       let div = document.createElement("div");
       div.className = "route_box";

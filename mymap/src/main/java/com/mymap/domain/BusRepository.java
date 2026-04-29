@@ -22,4 +22,20 @@ public interface BusRepository extends JpaRepository<Bus,Long> {
 
     @Query(value = "SELECT sta_ord FROM station_order WHERE station_id = :stId AND route_id = :routeId LIMIT 1", nativeQuery = true)
     Optional<Integer> getSeq(String stId, String routeId);
+
+    @Query(value = "WITH route_info AS (" +
+            "    SELECT MAX(sta_ord) as max_ord, " +
+            "           MIN(CASE WHEN sta_ord = 1 THEN station_id END) as first_st_id " +
+            "    FROM station_order WHERE route_id = :routeId" +
+            ") " +
+            "SELECT b1.station_name AS currentSt, b2.station_name AS nextSt " +
+            "FROM route_info r " +
+            "JOIN bus b1 ON b1.station_id = :stId " +
+            "JOIN station_order s2 ON s2.route_id = :routeId AND s2.sta_ord = (" +
+            "    CASE WHEN :staOrder < r.max_ord THEN :staOrder + 1 " +
+            "         ELSE CASE WHEN :stId = r.first_st_id THEN 2 ELSE 1 END " +
+            "    END" +
+            ") " +
+            "JOIN bus b2 ON s2.station_id = b2.station_id LIMIT 1", nativeQuery = true)
+    List<Object[]> findStationNames(String stId, String routeId, Integer staOrder);
 }
