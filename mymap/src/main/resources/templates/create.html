@@ -54,6 +54,10 @@
             </select>
             <button type="button" id="categ_choose">선택</button>
           </div>
+          <div style="display: flex; gap: 5px; flex: 1; margin: 0 10px;">
+            <input type="text" id="naverShareUrl" placeholder="공유링크" style="flex: 1; padding: 4px;">
+            <button type="button" id="parseNaverBtn">경로파싱</button>
+          </div>
           <button type="button" id="registerBtn">경로등록</button>
         </div>
         <div id="from_to_box" class="hidden">
@@ -108,10 +112,15 @@
     </div>
   </div>
   <th:block layout:fragment="script">
-    <script
+    <!-- [환경 A] Kakao Map (현재 활성) -->
+    <!-- <script
       type="text/javascript"
-      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
+      th:src="|//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services|"
     ></script>
-    <script type="module" th:src="@{/js/map.js}"></script>
+    <script type="module" th:src="@{/js/map.js}"></script> -->
+
+    <!-- [환경 B] Naver Map (비활성 - 테스트 시 위를 주석처리하고 아래 해제) -->
+    <script type="text/javascript" th:src="'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverClientId} + '&submodules=geocoder'"></script>
+    <script type="module" th:src="@{/js/map2.js}"></script>
   </th:block>
 </html>

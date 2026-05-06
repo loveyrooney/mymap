@@ -8,10 +8,16 @@
 >
   <div layout:fragment="content"></div>
   <th:block layout:fragment="script">
+    <!-- [환경 A] Kakao Map (현재 활성) -->
     <script
       type="text/javascript"
-      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ae3275a03ddfe59446faa76e4f137327&libraries=services"
+      th:src="|//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services|"
     ></script>
-    <script type="module"></script>
+    <script type="module" th:src="@{/js/map.js}"></script>
+
+    <!-- [환경 B] Naver Map (비활성 - 테스트 시 위를 주석처리하고 아래 해제)
+    <script type="text/javascript" th:src="'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverClientId} + '&submodules=geocoder'"></script>
+    <script type="module" th:src="@{/js/map2.js}"></script>
+    -->
   </th:block>
 </html>

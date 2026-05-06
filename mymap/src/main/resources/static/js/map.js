@@ -382,3 +382,101 @@ createJourney.addEventListener("click", async function () {
     window.location.href = "/view/main";
   }
 });
+
+const parseNaverBtn = document.getElementById("parseNaverBtn");
+if (parseNaverBtn) {
+  parseNaverBtn.addEventListener("click", () => {
+    const naverShareUrl = document.getElementById("naverShareUrl").value;
+    if (!naverShareUrl) {
+      alert("공유 링크를 입력해주세요.");
+      return;
+    }
+    
+    fetch("/api/parse-naver", {
+      method: "POST",
+      headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
+      body: JSON.stringify({ url: naverShareUrl })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("파싱 실패: " + data.error);
+        return;
+      }
+      
+      console.log("Parsed Data:", data);
+      
+      // 1. 출발지/도착지 데이터 등록
+      if (data.startPoint) {
+        registerForm["fromName"] = data.startPoint.name;
+        registerForm["fromGeoms"] = [data.startPoint.y, data.startPoint.x];
+        let pos = new kakao.maps.LatLng(data.startPoint.y, data.startPoint.x);
+        addMarker(pos);
+        bounds.extend(pos);
+      }
+      
+      if (data.goalPoint) {
+        registerForm["toName"] = data.goalPoint.name;
+        registerForm["toGeoms"] = [data.goalPoint.y, data.goalPoint.x];
+        let pos = new kakao.maps.LatLng(data.goalPoint.y, data.goalPoint.x);
+        addMarker(pos);
+        bounds.extend(pos);
+      }
+      
+      // 2. 추출된 정류장 노드들을 fromBus(출발역군)에 등록
+      if (data.stations && data.stations.length > 0) {
+        if (!registerForm["fromBus"]) registerForm["fromBus"] = [];
+        data.stations.forEach(st => {
+            // 중복 체크 후 추가 (ID가 없으면 이름으로 대체)
+            let stVal = st.name; 
+            if (!registerForm["fromBus"].includes(stVal)) {
+                registerForm["fromBus"].push(stVal);
+            }
+            
+            // 정류장들도 지도에 마커 표시 (선택사항이나 시각적으로 좋음)
+            if (st.x && st.y) {
+                let pos = new kakao.maps.LatLng(st.y, st.x);
+                // addMarker(pos); // 너무 많으면 지저분하므로 콘솔 확인용으로만 두거나 작게 표시 가능
+                bounds.extend(pos);
+            }
+        });
+      }
+      
+      // 3. 지도 범위 조정
+      map.setBounds(bounds);
+      
+      alert("경로 파싱에 성공했습니다!\n" + 
+            "출발지: " + data.startPoint.name + "\n" +
+            "도착지: " + data.goalPoint.name + "\n" +
+            "발견된 시작 정류장: " + data.stations.length + "개");
+            
+      console.log("Updated registerForm:", registerForm);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("파싱 중 오류가 발생했습니다.");
+    });
+  });
+}
+
+// 가이드 토글 이벤트
+const guideBtn = document.querySelector("#guide");
+const guideWrap = document.querySelector("#guide_wrap");
+const guideCloseBtn = document.querySelector("#guide_wrap_close");
+
+if (guideBtn && guideWrap) {
+  guideBtn.addEventListener("click", () => {
+    guideWrap.classList.toggle("hidden");
+  });
+}
+
+if (guideCloseBtn && guideWrap) {
+  guideCloseBtn.addEventListener("click", () => {
+    guideWrap.classList.add("hidden");
+  });
+}
+

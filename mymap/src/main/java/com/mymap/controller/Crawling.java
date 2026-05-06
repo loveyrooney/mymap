@@ -27,23 +27,17 @@ import java.util.stream.Collectors;
 @Component
 public class Crawling {
     
-    // In a real scenario, we might want to inject URL from properties
-    // @Value("${topis.url}")
-    // private String topisUrl;
     private static final String TOPIS_URL_OPEN_NOTICE = "https://topis.seoul.go.kr/notice/openNoticeList.do";
     private static final String TOPIS_URL_SELECT_NOTICE = "https://topis.seoul.go.kr/notice/selectNoticeList.do";
 
     public void crawlJsoup() {
         try {
             Document document = Jsoup.connect(TOPIS_URL_OPEN_NOTICE).get();
-
             log.info("Page Title: {}", document.title());
-
             Elements links = document.select("a[href]");
             for (Element link : links) {
                 log.info("Link: {} Text: {}", link.attr("href"), link.text());
             }
-
         } catch (IOException e) {
             log.error("Crawl error", e);
         }
@@ -69,13 +63,11 @@ public class Crawling {
         try {
             URL url = new URL(TOPIS_URL_SELECT_NOTICE);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
             connection.setDoOutput(true);
 
             String jsonInputString = "{\"name\":\"John\", \"age\":30}";
-
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes("utf-8");
                 os.write(input, 0, input.length);
@@ -88,7 +80,6 @@ public class Crawling {
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
                 String inputLine;
                 StringBuilder response = new StringBuilder();
-
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
@@ -96,21 +87,13 @@ public class Crawling {
 
                 JSONObject jsonResponse = new JSONObject(response.toString());
                 JSONArray arr = jsonResponse.getJSONArray("rows");
-                for(int i=0; i<50; i++){
-                    // Using direct index access might be risky if array size < 50
-                    // But keeping original logic for now, wrapped in try/catch loop if needed
-                    // Actually original code looped to 50 hardcoded.
-                    if (i < arr.length()) {
-                       log.info(arr.getJSONObject(i).toString());
-                    }
+                for(int i=0; i<Math.min(50, arr.length()); i++){
+                    log.info(arr.getJSONObject(i).toString());
                 }
-
             } else {
                 log.error("Request failed. HTTP code: {}", statusCode);
             }
-
             connection.disconnect();
-
         } catch (Exception e) {
             log.error("API call error", e);
         }

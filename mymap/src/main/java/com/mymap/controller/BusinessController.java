@@ -4,6 +4,7 @@ import com.mymap.domain.clusters.dto.*;
 import com.mymap.domain.clusters.repository.JourneyRepository;
 import com.mymap.domain.clusters.service.ClustersService;
 import com.mymap.domain.clusters.service.BusFilterService;
+import com.mymap.domain.clusters.service.MapParserService;
 import com.mymap.domain.geoms.GeomService;
 import com.mymap.domain.geoms.MarkerDTO;
 import com.mymap.domain.geoms.TransferDTO;
@@ -30,16 +31,28 @@ public class BusinessController {
     private final GeomService geomService;
     private final JourneyRepository journeyRepository;
     private final Crawling crawling;
+    private final MapParserService mapParserService;
 
     @GetMapping("/crawling")
     public List<String> crawling(){
         return crawling.crawlSelenium();
     }
 
+
     @PostMapping("/transfer")
     public List<TransferDTO> transfer(@RequestBody TransferReqDTO dto){
         return geomService.findTransfers(dto);
     }
+
+    @PostMapping("/parse-naver")
+    public Map<String, Object> parseNaver(@RequestBody Map<String, String> payload) {
+        String url = payload.get("url");
+        if (url != null && !url.isEmpty()) {
+            return mapParserService.parseAndLogRoute(url);
+        }
+        return Map.of("error", "URL is empty");
+    }
+
 
     @PostMapping("/journey")
     public long registerJourney(@RequestBody JourneyDTO dto){
