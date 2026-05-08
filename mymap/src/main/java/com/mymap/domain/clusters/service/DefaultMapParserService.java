@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Primary
+// @Primary
 @Service
 public class DefaultMapParserService implements MapParserService {
 
